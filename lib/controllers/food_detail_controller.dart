@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 
-import '../dataModels/food_detail_data_model.dart';
 import '../models/food_detail.dart';
+import '../useCases/load_food_detail_use_case.dart';
 
 class FoodDetailsController extends GetxController {
-  FoodDetailsController({required this.dataModel});
+  FoodDetailsController({required this.loadFoodDetailUseCase});
 
-  final FoodDetailDataModelInterface dataModel;
+  final LoadFoodDetailUseCase loadFoodDetailUseCase;
 
   // Reactive variables
   final Rxn<FoodDetail> foodDetail = Rxn<FoodDetail>();
@@ -21,7 +21,7 @@ class FoodDetailsController extends GetxController {
     foodDetail.value = null;
 
     try {
-      final detail = await dataModel.loadFoodDetail(fdcId);
+      final detail = await loadFoodDetailUseCase.execute(fdcId);
       foodDetail.value = detail;
       print('[FoodDetailController] ✅ Food detail loaded');
     } catch (e, stackTrace) {

@@ -57,8 +57,22 @@ class GenericListItem extends StatelessWidget {
                         color: Theme.of(context).colorScheme.surfaceVariant,
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: imageFile != null && imageFile.existsSync()
-                          ? Image.file(imageFile, fit: BoxFit.cover)
+                      child: imageFile != null
+                          ? FutureBuilder<bool>(
+                              future: imageFile.exists(),
+                              builder: (context, snapshot) {
+                                if (snapshot.data == true) {
+                                  return Image.file(
+                                    imageFile,
+                                    fit: BoxFit.cover,
+                                  );
+                                }
+                                return Icon(
+                                  Icons.fastfood_outlined,
+                                  color: Theme.of(context).colorScheme.outline,
+                                );
+                              },
+                            )
                           : Icon(
                               Icons.fastfood_outlined,
                               color: Theme.of(context).colorScheme.outline,
@@ -123,11 +137,7 @@ class DetailItem {
   final String value;
   final Color? color;
 
-  const DetailItem({
-    required this.label,
-    required this.value,
-    this.color,
-  });
+  const DetailItem({required this.label, required this.value, this.color});
 }
 
 /// Internal widget for detail chips
@@ -141,7 +151,8 @@ class _DetailChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: detail.color?.withOpacity(0.15) ??
+        color:
+            detail.color?.withOpacity(0.15) ??
             Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(6),
       ),
@@ -156,4 +167,3 @@ class _DetailChip extends StatelessWidget {
     );
   }
 }
-

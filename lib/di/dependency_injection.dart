@@ -2,8 +2,6 @@ import 'package:get/get.dart';
 
 import '../controllers/food_detail_controller.dart';
 import '../controllers/foodies_controller.dart';
-import '../dataModels/food_detail_data_model.dart';
-import '../dataModels/foodies_data_model.dart';
 import '../services/api_service.dart';
 import '../services/food_data_service.dart';
 import '../services/food_detection_service.dart';
@@ -11,6 +9,10 @@ import '../services/foodies_storage_service.dart';
 import '../services/secrets_service.dart';
 import '../services/storage_service.dart';
 import '../services/vision_detection_service.dart';
+import '../useCases/capture_and_detect_food_use_case.dart';
+import '../useCases/clear_all_use_case.dart';
+import '../useCases/load_food_detail_use_case.dart';
+import '../useCases/load_food_history_use_case.dart';
 
 /// Dependency Injection container
 /// Responsible for initializing and wiring all dependencies
@@ -53,20 +55,34 @@ class DependencyInjection {
     );
     print('[DI] ✅ Food data services initialized');
 
-    // 6. Initialize data models
-    final foodiesDataModel = FoodiesDataModelImpl(
+    // 6. Initialize use cases
+    final loadFoodHistoryUseCase = LoadFoodHistoryUseCaseImpl(
+      storageService: foodiesStorageService,
+    );
+    final captureAndDetectFoodUseCase = CaptureAndDetectFoodUseCaseImpl(
       detectionService: foodDetectionService,
       foodDataService: foodDataService,
       storageService: foodiesStorageService,
     );
-    final detailDataModel = FoodDetailDataModelImpl(
+    final clearAllUseCase = ClearAllUseCaseImpl(
+      storageService: foodiesStorageService,
+    );
+    final loadFoodDetailUseCase = LoadFoodDetailUseCaseImpl(
       foodDataService: foodDataService,
     );
-    print('[DI] ✅ Data models initialized');
+    print('[DI] ✅ Use cases initialized');
 
-    // 7. Register controllers with GetX
-    Get.put(FoodiesController(dataModel: foodiesDataModel));
-    Get.put(FoodDetailsController(dataModel: detailDataModel));
+    // 8. Register controllers with GetX
+    Get.put(
+      FoodiesController(
+        loadFoodHistoryUseCase: loadFoodHistoryUseCase,
+        captureAndDetectFoodUseCase: captureAndDetectFoodUseCase,
+        clearAllUseCase: clearAllUseCase,
+      ),
+    );
+    Get.put(
+      FoodDetailsController(loadFoodDetailUseCase: loadFoodDetailUseCase),
+    );
     print('[DI] ✅ Controllers registered');
 
     print('[DI] ✅ All dependencies initialized successfully');

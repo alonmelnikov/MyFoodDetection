@@ -1,16 +1,22 @@
-import 'dart:io';
-
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/food_detection_exception.dart';
-import '../dataModels/foodies_data_model.dart';
 import '../models/food_item.dart';
+import '../useCases/capture_and_detect_food_use_case.dart';
+import '../useCases/clear_all_use_case.dart';
+import '../useCases/load_food_history_use_case.dart';
 
 class FoodiesController extends GetxController {
-  FoodiesController({required this.dataModel});
+  FoodiesController({
+    required this.loadFoodHistoryUseCase,
+    required this.captureAndDetectFoodUseCase,
+    required this.clearAllUseCase,
+  });
 
-  final FoodiesDataModelInterface dataModel;
+  final LoadFoodHistoryUseCase loadFoodHistoryUseCase;
+  final CaptureAndDetectFoodUseCase captureAndDetectFoodUseCase;
+  final ClearAllUseCase clearAllUseCase;
 
   // Reactive variables
   final RxList<FoodItem> items = <FoodItem>[].obs;
@@ -28,7 +34,7 @@ class FoodiesController extends GetxController {
     error.value = null;
 
     try {
-      final historyItems = await dataModel.loadHistory();
+      final historyItems = await loadFoodHistoryUseCase.execute();
       items.value = historyItems;
     } catch (e) {
       error.value = 'Failed to load history';
@@ -45,21 +51,19 @@ class FoodiesController extends GetxController {
 
     print('[FoodiesController] 📸 Photo captured: ${photo.path}');
 
-    final File imageFile = File(photo.path);
-    await _processAndDetectFood(imageFile);
+    await _processAndDetectFood(photo);
   }
 
-  Future<void> _processAndDetectFood(File imageFile) async {
+  Future<void> _processAndDetectFood(XFile photo) async {
     print('[ProcessFood] 🎬 Starting food processing...');
-    print('[ProcessFood] 📸 Image file: ${imageFile.path}');
-    print('[ProcessFood] 📂 File exists: ${await imageFile.exists()}');
+    print('[ProcessFood] 📸 Photo path: ${photo.path}');
 
     isLoading.value = true;
     error.value = null;
-    print('[ProcessFood] ⏳ State set to loading, calling data model...');
+    print('[ProcessFood] ⏳ State set to loading, calling use case...');
 
     try {
-      final item = await dataModel.captureAndDetectFood(imageFile);
+      final item = await captureAndDetectFoodUseCase.execute(photo);
       print('[ProcessFood] ✅ Detection successful!');
       print('[ProcessFood] 🍕 Food name: ${item.name}');
       print('[ProcessFood] 🆔 Item ID: ${item.id}');
@@ -88,7 +92,7 @@ class FoodiesController extends GetxController {
     error.value = null;
 
     try {
-      await dataModel.clearAll();
+      await clearAllUseCase.execute();
       items.clear();
       print('[FoodiesController] ✅ All data cleared');
     } catch (e) {
