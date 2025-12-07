@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../models/food_item.dart';
 import 'storage_service.dart';
 
 /// Service for caching food-related data
@@ -12,6 +13,7 @@ class FoodiesStorageService {
   /// Cache key prefixes
   static const String _foodSearchPrefix = 'food_search_';
   static const String _foodDetailPrefix = 'food_detail_';
+  static const String _foodItemsKey = 'food_items';
 
   /// Cache expiration time (1 week)
   static const Duration _cacheExpiration = Duration(days: 7);
@@ -52,11 +54,46 @@ class FoodiesStorageService {
     return await _readAndValidateCache(key);
   }
 
+  /// Save food items list
+  Future<void> saveFoodItems(List<FoodItem> items) async {
+    print('[FoodiesStorage] 💾 Saving ${items.length} food items');
+    final jsonString = FoodItem.encodeList(items);
+    await _storageService.save(_foodItemsKey, jsonString);
+    print('[FoodiesStorage] ✅ Food items saved');
+  }
+
+  /// Load food items list
+  Future<List<FoodItem>> loadFoodItems() async {
+    print('[FoodiesStorage] 🔍 Loading food items');
+    final jsonString = await _storageService.read(_foodItemsKey);
+    if (jsonString == null) {
+      print('[FoodiesStorage] ⚠️ No food items found');
+      return [];
+    }
+    final items = FoodItem.decodeList(jsonString);
+    print('[FoodiesStorage] ✅ Loaded ${items.length} food items');
+    return items;
+  }
+
   /// Clear all cached food data
   Future<void> clearCache() async {
     print('[FoodiesStorage] 🗑️ Clearing all cache...');
     await _storageService.clear();
     print('[FoodiesStorage] ✅ Cache cleared');
+  }
+
+  /// Clear all food items (but keep cache)
+  Future<void> clearFoodItems() async {
+    print('[FoodiesStorage] 🗑️ Clearing all food items...');
+    await _storageService.delete(_foodItemsKey);
+    print('[FoodiesStorage] ✅ Food items cleared');
+  }
+
+  /// Clear everything (cache + food items)
+  Future<void> clearAll() async {
+    print('[FoodiesStorage] 🗑️ Clearing everything (cache + food items)...');
+    await _storageService.clear();
+    print('[FoodiesStorage] ✅ Everything cleared');
   }
 
   /// Clean up expired cache entries

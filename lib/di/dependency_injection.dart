@@ -57,6 +57,7 @@ class DependencyInjection {
     final foodiesDataModel = FoodiesDataModelImpl(
       detectionService: foodDetectionService,
       foodDataService: foodDataService,
+      storageService: foodiesStorageService,
     );
     final detailDataModel = FoodDetailDataModelImpl(
       foodDataService: foodDataService,

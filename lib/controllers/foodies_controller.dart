@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../core/food_detection_exception.dart';
 import '../dataModels/foodies_data_model.dart';
 import '../models/food_item.dart';
 
@@ -69,16 +70,32 @@ class FoodiesController extends GetxController {
       items.insert(0, item); // Add to beginning of list
 
       print('[ProcessFood] ✅ State updated, new items count: ${items.length}');
+    } on FoodDetectionException catch (e) {
+      print('[ProcessFood] ❌ FoodDetectionException: ${e.type} - ${e.message}');
+      error.value = e.message;
     } catch (e, stackTrace) {
-      print('[ProcessFood] ❌ Error occurred: $e');
+      print('[ProcessFood] ❌ Unexpected error occurred: $e');
       print('[ProcessFood] 📚 Stack trace: $stackTrace');
 
-      error.value = 'Failed to analyze food. Please try again.';
+      error.value = 'An unexpected error occurred. Please try again.';
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-      print('[ProcessFood] ⚠️ Error state set');
+  Future<void> clearAll() async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      await dataModel.clearAll();
+      items.clear();
+      print('[FoodiesController] ✅ All data cleared');
+    } catch (e) {
+      print('[FoodiesController] ❌ Failed to clear data: $e');
+      error.value = 'Failed to clear data. Please try again.';
     } finally {
       isLoading.value = false;
     }
   }
 }
-

@@ -26,8 +26,10 @@ class FoodDetail {
     for (final nutrient in foodNutrients) {
       if (nutrient is! Map<String, dynamic>) continue;
 
-      final nutrientName = nutrient['nutrientName'] as String?;
-      final value = (nutrient['value'] as num?)?.toDouble();
+      // Handle nested structure: nutrient.nutrient.name and nutrient.amount
+      final nutrientData = nutrient['nutrient'] as Map<String, dynamic>?;
+      final nutrientName = nutrientData?['name'] as String?;
+      final value = (nutrient['amount'] as num?)?.toDouble();
 
       if (nutrientName != null && value != null) {
         nutrients[nutrientName] = value;

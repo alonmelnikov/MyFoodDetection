@@ -70,10 +70,12 @@ class UsdaFoodDataService implements FoodDataService {
     }
 
     print('[FoodDataService] ✅ Search successful');
-    
+    print('[FoodDataService] 📄 JSON Response:');
+    print('[FoodDataService] ${result.data}');
+
     // Cache the result
     await _storageService.saveFoodSearchResults(query, result.data!);
-    
+
     return Result.success(result.data!);
   }
 
@@ -109,10 +111,12 @@ class UsdaFoodDataService implements FoodDataService {
     }
 
     print('[FoodDataService] ✅ Get food successful');
-    
+    print('[FoodDataService] 📄 JSON Response:');
+    print('[FoodDataService] ${result.data}');
+
     // Cache the result
     await _storageService.saveFoodDetail(fdcId, result.data!);
-    
+
     return Result.success(result.data!);
   }
 

@@ -26,7 +26,7 @@ abstract class StorageService {
 /// File-based storage service implementation
 class FileStorageService implements StorageService {
   FileStorageService({String? directoryName})
-      : _directoryName = directoryName ?? 'app_storage';
+    : _directoryName = directoryName ?? 'app_storage';
 
   final String _directoryName;
   Directory? _storageDirectory;
@@ -109,7 +109,9 @@ class FileStorageService implements StorageService {
       final file = File(filePath);
       return await file.exists();
     } catch (e) {
-      print('[FileStorage] ❌ Failed to check existence for key: $key, error: $e');
+      print(
+        '[FileStorage] ❌ Failed to check existence for key: $key, error: $e',
+      );
       return false;
     }
   }
@@ -156,4 +158,3 @@ class FileStorageService implements StorageService {
     }
   }
 }
-
