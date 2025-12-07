@@ -23,6 +23,68 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     return <FoodItem>[];
   }
 
+  /// Process detection results and return top 3 labels based on combined score.
+  ///
+  /// Combined score = topicality * 0.7 + score * 0.3
+  List<Map<String, dynamic>> getTop3Results(Map<String, dynamic> rawJson) {
+    print('[DataModel] 📊 Processing results to get top 3...');
+
+    // Extract items from the raw JSON
+    List<dynamic> items = [];
+
+    // Try different possible JSON structures
+    if (rawJson.containsKey('results')) {
+      items = rawJson['results'] as List<dynamic>? ?? [];
+    } else if (rawJson.containsKey('labels')) {
+      items = rawJson['labels'] as List<dynamic>? ?? [];
+    } else if (rawJson.containsKey('responses')) {
+      final responses = rawJson['responses'] as List<dynamic>? ?? [];
+      if (responses.isNotEmpty) {
+        final first = responses.first as Map<String, dynamic>;
+        items = first['labelAnnotations'] as List<dynamic>? ?? [];
+      }
+    }
+
+    if (items.isEmpty) {
+      print('[DataModel] ⚠️ No items found in raw JSON');
+      return [];
+    }
+
+    // Calculate combined score for each item
+    final scoredItems = <Map<String, dynamic>>[];
+
+    for (final item in items) {
+      if (item is! Map<String, dynamic>) continue;
+
+      final topicality = (item['topicality'] as num?)?.toDouble() ?? 0.0;
+      final score = (item['score'] as num?)?.toDouble() ?? 0.0;
+      final combined = topicality * 0.7 + score * 0.3;
+
+      scoredItems.add({
+        ...item,
+        'combinedScore': combined,
+      });
+
+      print(
+        '[DataModel]   - ${item['description'] ?? item['label'] ?? 'Unknown'}: '
+        'topicality=$topicality, score=$score, combined=$combined',
+      );
+    }
+
+    // Sort by combined score (descending)
+    scoredItems.sort((a, b) {
+      final scoreA = a['combinedScore'] as double;
+      final scoreB = b['combinedScore'] as double;
+      return scoreB.compareTo(scoreA);
+    });
+
+    // Return top 3
+    final top3 = scoredItems.take(3).toList();
+    print('[DataModel] ✅ Top 3 results selected');
+
+    return top3;
+  }
+
   @override
   Future<FoodItem> captureAndDetectFood(File imageFile) async {
     print('[DataModel] 🎯 captureAndDetectFood called');
@@ -46,9 +108,23 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
 
     print('[DataModel] ✅ Detection service succeeded');
     final detection = detectionResult.data!;
-    final label = detection.label ?? 'Food';
+
+    // Get top 3 results based on combined score
+    final top3 = getTop3Results(detection.raw);
+
+    // Use the best result (first in top 3) as the label
+    String label = 'Food';
+    if (top3.isNotEmpty) {
+      label = top3.first['description'] as String? ??
+          top3.first['label'] as String? ??
+          detection.label ??
+          'Food';
+    } else {
+      label = detection.label ?? 'Food';
+    }
+
     print(
-      '[DataModel] 🏷️ Label extracted: $label (fallback applied: ${detection.label == null})',
+      '[DataModel] 🏷️ Label extracted: $label (from top result)',
     );
 
     final now = DateTime.now();
