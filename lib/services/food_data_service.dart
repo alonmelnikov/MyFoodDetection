@@ -2,6 +2,7 @@ import '../enums/network_errors.dart';
 import '../models/food_nutrients.dart';
 import '../models/result.dart';
 import 'api_service.dart';
+import 'foodies_storage_service.dart';
 import 'secrets_service.dart';
 
 /// Protocol (interface) for food data service.
@@ -18,16 +19,19 @@ abstract class FoodDataService {
   );
 }
 
-/// Food data service that uses USDA FoodData Central API
+/// Food data service that uses USDA FoodData Central API with caching
 class UsdaFoodDataService implements FoodDataService {
   UsdaFoodDataService({
     required ApiService apiService,
     required SecretsService secretsService,
+    required FoodiesStorageService storageService,
   }) : _apiService = apiService,
-       _secretsService = secretsService;
+       _secretsService = secretsService,
+       _storageService = storageService;
 
   final ApiService _apiService;
   final SecretsService _secretsService;
+  final FoodiesStorageService _storageService;
 
   static const String _baseUrl = 'https://api.nal.usda.gov/fdc/v1';
 
@@ -39,6 +43,13 @@ class UsdaFoodDataService implements FoodDataService {
     String query,
   ) async {
     print('[FoodDataService] 🔍 Searching for foods: $query');
+
+    // Check cache first
+    final cachedData = await _storageService.getFoodSearchResults(query);
+    if (cachedData != null) {
+      print('[FoodDataService] ✅ Returning cached search results');
+      return Result.success(cachedData);
+    }
 
     if (_apiKey == null) {
       print('[FoodDataService] ❌ API key not found');
@@ -59,6 +70,10 @@ class UsdaFoodDataService implements FoodDataService {
     }
 
     print('[FoodDataService] ✅ Search successful');
+    
+    // Cache the result
+    await _storageService.saveFoodSearchResults(query, result.data!);
+    
     return Result.success(result.data!);
   }
 
@@ -67,6 +82,13 @@ class UsdaFoodDataService implements FoodDataService {
     int fdcId,
   ) async {
     print('[FoodDataService] 📋 Getting food details for FDC ID: $fdcId');
+
+    // Check cache first
+    final cachedData = await _storageService.getFoodDetail(fdcId);
+    if (cachedData != null) {
+      print('[FoodDataService] ✅ Returning cached food detail');
+      return Result.success(cachedData);
+    }
 
     if (_apiKey == null) {
       print('[FoodDataService] ❌ API key not found');
@@ -87,6 +109,10 @@ class UsdaFoodDataService implements FoodDataService {
     }
 
     print('[FoodDataService] ✅ Get food successful');
+    
+    // Cache the result
+    await _storageService.saveFoodDetail(fdcId, result.data!);
+    
     return Result.success(result.data!);
   }
 

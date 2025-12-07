@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import '../dataModels/food_detail_data_model.dart';
 import '../models/food_detail.dart';
 
-class FoodDetailController extends GetxController {
-  FoodDetailController({required this.dataModel});
+class FoodDetailsController extends GetxController {
+  FoodDetailsController({required this.dataModel});
 
   final FoodDetailDataModelInterface dataModel;
 
@@ -13,7 +13,7 @@ class FoodDetailController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxnString error = RxnString();
 
-  Future<void> loadFoodDetail(int fdcId) async {
+  Future<void> loadFoodDetails(int fdcId) async {
     print('[FoodDetailController] 🎬 Loading food detail for FDC ID: $fdcId');
 
     isLoading.value = true;

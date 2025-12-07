@@ -70,8 +70,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               Text(
                 foodDetail.description,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
 

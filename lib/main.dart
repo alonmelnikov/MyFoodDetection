@@ -8,7 +8,9 @@ import 'dataModels/foodies_data_model.dart';
 import 'services/api_service.dart';
 import 'services/food_data_service.dart';
 import 'services/food_detection_service.dart';
+import 'services/foodies_storage_service.dart';
 import 'services/secrets_service.dart';
+import 'services/storage_service.dart';
 import 'services/vision_detection_service.dart';
 import 'ui/screens/foodies_screen.dart';
 
@@ -19,6 +21,10 @@ void main() async {
   // Initialize services
   final apiService = HttpApiService();
   final secretsService = EnvSecretsService();
+  final storageService = FileStorageService(directoryName: 'foodies_cache');
+  final foodiesStorageService = FoodiesStorageService(
+    storageService: storageService,
+  );
   final visionService = GoogleVisionDetectionService(apiService: apiService);
   final foodDetectionService = FoodDetectionService(
     visionService: visionService,
@@ -26,6 +32,7 @@ void main() async {
   final foodDataService = UsdaFoodDataService(
     apiService: apiService,
     secretsService: secretsService,
+    storageService: foodiesStorageService,
   );
   final foodiesDataModel = FoodiesDataModelImpl(
     detectionService: foodDetectionService,
@@ -37,7 +44,7 @@ void main() async {
 
   // Register controllers with GetX
   Get.put(FoodiesController(dataModel: foodiesDataModel));
-  Get.put(FoodDetailController(dataModel: detailDataModel));
+  Get.put(FoodDetailsController(dataModel: detailDataModel));
 
   runApp(const MyApp());
 }
