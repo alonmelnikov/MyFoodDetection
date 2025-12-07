@@ -70,6 +70,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     double carbs = 0;
     double protein = 0;
     double fat = 0;
+    int? fdcId;
 
     for (var i = 0; i < labelsToTry.length; i++) {
       final label = labelsToTry[i];
@@ -88,6 +89,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
         carbs = nutrients.carbs;
         protein = nutrients.protein;
         fat = nutrients.fat;
+        fdcId = nutrients.fdcId;
 
         print('[DataModel] ✅ Successfully got nutrients for: $selectedLabel');
         break;
@@ -128,6 +130,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
       protein: protein,
       fat: fat,
       capturedAt: now,
+      fdcId: fdcId,
     );
 
     print('[DataModel] ✅ FoodItem created successfully');

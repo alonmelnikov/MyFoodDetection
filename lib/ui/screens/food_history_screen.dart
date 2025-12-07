@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/food_history_controller.dart';
+import 'food_detail_screen.dart';
 import '../../models/food_item.dart';
 
 class FoodHistoryScreen extends StatelessWidget {
@@ -158,7 +159,17 @@ class _FoodHistoryListItem extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {},
+            onTap: () {
+              if (item.fdcId != null) {
+                Get.to(() => FoodDetailScreen(fdcId: item.fdcId!));
+              } else {
+                Get.snackbar(
+                  'No Details Available',
+                  'This food item does not have detailed information.',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(

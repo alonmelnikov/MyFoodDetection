@@ -9,6 +9,7 @@ class FoodItem {
   final double protein;
   final double fat;
   final DateTime capturedAt;
+  final int? fdcId; // USDA FoodData Central ID
 
   const FoodItem({
     required this.id,
@@ -19,6 +20,7 @@ class FoodItem {
     required this.protein,
     required this.fat,
     required this.capturedAt,
+    this.fdcId,
   });
 
   FoodItem copyWith({
@@ -30,6 +32,7 @@ class FoodItem {
     double? protein,
     double? fat,
     DateTime? capturedAt,
+    int? fdcId,
   }) {
     return FoodItem(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class FoodItem {
       protein: protein ?? this.protein,
       fat: fat ?? this.fat,
       capturedAt: capturedAt ?? this.capturedAt,
+      fdcId: fdcId ?? this.fdcId,
     );
   }
 
@@ -53,6 +57,7 @@ class FoodItem {
       'protein': protein,
       'fat': fat,
       'capturedAt': capturedAt.toIso8601String(),
+      'fdcId': fdcId,
     };
   }
 
@@ -66,6 +71,7 @@ class FoodItem {
       protein: (json['protein'] as num).toDouble(),
       fat: (json['fat'] as num).toDouble(),
       capturedAt: DateTime.parse(json['capturedAt'] as String),
+      fdcId: json['fdcId'] as int?,
     );
   }
 

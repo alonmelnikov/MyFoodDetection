@@ -115,6 +115,7 @@ class UsdaFoodDataService implements FoodDataService {
     // Get the first food item
     final firstFood = foods.first as Map<String, dynamic>;
     final foodNutrients = firstFood['foodNutrients'] as List<dynamic>?;
+    final fdcId = firstFood['fdcId'] as int?;
 
     if (foodNutrients == null || foodNutrients.isEmpty) {
       print('[FoodDataService] ⚠️ No nutrients found for: $foodName');
@@ -124,13 +125,23 @@ class UsdaFoodDataService implements FoodDataService {
     print('[FoodDataService] 📊 Parsing ${foodNutrients.length} nutrients');
 
     final nutrients = FoodNutrients.fromJson(foodNutrients);
+    
+    // Add fdcId to nutrients
+    final nutrientsWithId = FoodNutrients(
+      calories: nutrients.calories,
+      carbs: nutrients.carbs,
+      protein: nutrients.protein,
+      fat: nutrients.fat,
+      fdcId: fdcId,
+    );
 
     print('[FoodDataService] ✅ Nutrients parsed successfully');
-    print('[FoodDataService]    - Calories: ${nutrients.calories}');
-    print('[FoodDataService]    - Carbs: ${nutrients.carbs}g');
-    print('[FoodDataService]    - Protein: ${nutrients.protein}g');
-    print('[FoodDataService]    - Fat: ${nutrients.fat}g');
+    print('[FoodDataService]    - FDC ID: $fdcId');
+    print('[FoodDataService]    - Calories: ${nutrientsWithId.calories}');
+    print('[FoodDataService]    - Carbs: ${nutrientsWithId.carbs}g');
+    print('[FoodDataService]    - Protein: ${nutrientsWithId.protein}g');
+    print('[FoodDataService]    - Fat: ${nutrientsWithId.fat}g');
 
-    return Result.success(nutrients);
+    return Result.success(nutrientsWithId);
   }
 }

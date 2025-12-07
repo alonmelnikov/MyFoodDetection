@@ -4,12 +4,14 @@ class FoodNutrients {
   final double carbs;
   final double protein;
   final double fat;
+  final int? fdcId;
 
   FoodNutrients({
     required this.calories,
     required this.carbs,
     required this.protein,
     required this.fat,
+    this.fdcId,
   });
 
   /// Parse nutrients from USDA API food nutrients array

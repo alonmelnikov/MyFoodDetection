@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'controllers/food_detail_controller.dart';
 import 'controllers/food_history_controller.dart';
+import 'dataModels/food_detail_data_model.dart';
 import 'dataModels/food_history_data_model.dart';
 import 'services/api_service.dart';
 import 'services/food_data_service.dart';
@@ -25,13 +27,17 @@ void main() async {
     apiService: apiService,
     secretsService: secretsService,
   );
-  final dataModel = FoodHistoryDataModelImpl(
+  final historyDataModel = FoodHistoryDataModelImpl(
     detectionService: foodDetectionService,
     foodDataService: foodDataService,
   );
+  final detailDataModel = FoodDetailDataModelImpl(
+    foodDataService: foodDataService,
+  );
 
-  // Register controller with GetX (uses FoodHistoryDataModelInterface)
-  Get.put(FoodHistoryController(dataModel: dataModel));
+  // Register controllers with GetX
+  Get.put(FoodHistoryController(dataModel: historyDataModel));
+  Get.put(FoodDetailController(dataModel: detailDataModel));
 
   runApp(const MyApp());
 }
