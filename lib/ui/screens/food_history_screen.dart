@@ -8,7 +8,8 @@ import '../../controllers/food_history_controller.dart';
 import '../../models/food_item.dart';
 
 class FoodHistoryScreen extends StatelessWidget {
-  const FoodHistoryScreen({super.key});
+  FoodHistoryScreen({Key? key}) : super(key: key);
+  final controller = Get.find<FoodHistoryController>();
 
   Future<File?> _captureImage() async {
     final picker = ImagePicker();
@@ -23,8 +24,6 @@ class FoodHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<FoodHistoryController>();
-
     return Scaffold(
       appBar: AppBar(title: const Text('Food History'), centerTitle: true),
       body: Column(

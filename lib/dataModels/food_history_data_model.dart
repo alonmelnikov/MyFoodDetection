@@ -7,17 +7,12 @@ import '../models/result.dart';
 import '../services/food_detection_service.dart';
 
 /// Interface for the food history view model / data model.
-abstract class FoodHistoryDataModel {
-  /// Load the current food history.
-  ///
-  /// Dummy implementation: returns an empty list (no persistence).
+abstract class FoodHistoryDataModelInterface {
   Future<List<FoodItem>> loadHistory();
-
-  /// Analyze the captured image and return a new FoodItem.
   Future<FoodItem> captureAndDetectFood(File imageFile);
 }
 
-class FoodHistoryDataModelImpl implements FoodHistoryDataModel {
+class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
   FoodHistoryDataModelImpl({required FoodDetectionService detectionService})
     : _detectionService = detectionService;
 
@@ -25,7 +20,6 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModel {
 
   @override
   Future<List<FoodItem>> loadHistory() async {
-    // Dummy implementation: no persistence, start with an empty list.
     return <FoodItem>[];
   }
 
