@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../models/food_item.dart';
 import '../services/foodies_storage_service.dart';
 
@@ -14,6 +16,21 @@ class LoadFoodHistoryUseCaseImpl implements LoadFoodHistoryUseCase {
 
   @override
   Future<List<FoodItem>> execute() async {
-    return await _storageService.loadFoodItems();
+    final items = await _storageService.loadFoodItems();
+
+    // Verify image files exist and log paths
+    for (final item in items) {
+      final imageFile = File(item.imagePath);
+      final exists = await imageFile.exists();
+      print('[LoadFoodHistoryUseCase] 📸 Item: ${item.name}');
+      print('[LoadFoodHistoryUseCase]    Path: ${item.imagePath}');
+      print('[LoadFoodHistoryUseCase]    Exists: $exists');
+      if (exists) {
+        final size = await imageFile.length();
+        print('[LoadFoodHistoryUseCase]    Size: $size bytes');
+      }
+    }
+
+    return items;
   }
 }

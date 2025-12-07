@@ -47,20 +47,6 @@ class CaptureAndDetectFoodUseCaseImpl implements CaptureAndDetectFoodUseCase {
       throw Exception('Captured image file does not exist.');
     }
 
-    // Generate item ID early so we can save the image immediately
-    final now = DateTime.now();
-    final itemId = '${now.millisecondsSinceEpoch}_${imageFile.path.hashCode}';
-
-    // Copy image to permanent location IMMEDIATELY before any async operations
-    // This ensures the temp file is still available
-    print(
-      '[CaptureAndDetectFoodUseCase] 📸 Saving image immediately to prevent temp file deletion...',
-    );
-    final permanentImagePath = await _copyImageToPermanentLocation(
-      imageFile,
-      itemId,
-    );
-
     print(
       '[CaptureAndDetectFoodUseCase] ✅ Image file validated, calling detection service...',
     );
@@ -110,8 +96,27 @@ class CaptureAndDetectFoodUseCaseImpl implements CaptureAndDetectFoodUseCase {
       '[CaptureAndDetectFoodUseCase] ✅ Detection service returned ${labels.length} labels',
     );
 
+    // Filter out labels with topicality < 0.1
+    final filteredLabels = labels
+        .where((label) => label.topicality >= 0.1)
+        .toList();
+    print(
+      '[CaptureAndDetectFoodUseCase] 🔍 Filtered to ${filteredLabels.length} labels (topicality >= 0.1)',
+    );
+
+    if (filteredLabels.isEmpty) {
+      print(
+        '[CaptureAndDetectFoodUseCase] ❌ No labels with sufficient topicality',
+      );
+      throw FoodDetectionException(
+        type: FoodDetectionErrorType.foodNotRecognized,
+        message:
+            'Could not recognize food in the image. Please try a clearer photo.',
+      );
+    }
+
     // Reverse labels to get highest scores first and limit to 5
-    final labelsToTry = labels.reversed.take(5).toList();
+    final labelsToTry = filteredLabels.reversed.take(5).toList();
     print(
       '[CaptureAndDetectFoodUseCase] 🔄 Will try ${labelsToTry.length} labels (highest scores first, max 5)',
     );
@@ -184,6 +189,18 @@ class CaptureAndDetectFoodUseCaseImpl implements CaptureAndDetectFoodUseCase {
       }
     }
 
+    // Generate item ID and copy image to permanent location AFTER successful detection
+    final now = DateTime.now();
+    final itemId = '${now.millisecondsSinceEpoch}_${imageFile.path.hashCode}';
+
+    print(
+      '[CaptureAndDetectFoodUseCase] 📸 Saving image to permanent location...',
+    );
+    final permanentImagePath = await _copyImageToPermanentLocation(
+      imageFile,
+      itemId,
+    );
+
     print('[CaptureAndDetectFoodUseCase] 🔨 Building FoodItem...');
     print('[CaptureAndDetectFoodUseCase]    - ID: $itemId');
     print('[CaptureAndDetectFoodUseCase]    - Name: $selectedLabel');
@@ -226,9 +243,7 @@ class CaptureAndDetectFoodUseCaseImpl implements CaptureAndDetectFoodUseCase {
     print(
       '[CaptureAndDetectFoodUseCase] 📸 Copying image to permanent location...',
     );
-    print(
-      '[CaptureAndDetectFoodUseCase] 📂 Source file: ${sourceFile.path}',
-    );
+    print('[CaptureAndDetectFoodUseCase] 📂 Source file: ${sourceFile.path}');
     print(
       '[CaptureAndDetectFoodUseCase] 📂 Source exists: ${await sourceFile.exists()}',
     );
@@ -289,11 +304,30 @@ class CaptureAndDetectFoodUseCaseImpl implements CaptureAndDetectFoodUseCase {
   /// Save FoodItem to storage
   Future<void> _saveFoodItem(FoodItem item) async {
     print('[CaptureAndDetectFoodUseCase] 💾 Saving FoodItem to storage...');
+    print('[CaptureAndDetectFoodUseCase]    - Item ID: ${item.id}');
+    print('[CaptureAndDetectFoodUseCase]    - Item Name: ${item.name}');
+    print('[CaptureAndDetectFoodUseCase]    - Image Path: ${item.imagePath}');
+
+    // Verify the image file exists before saving
+    final imageFile = File(item.imagePath);
+    final imageExists = await imageFile.exists();
+    print('[CaptureAndDetectFoodUseCase]    - Image exists: $imageExists');
+    if (imageExists) {
+      final imageSize = await imageFile.length();
+      print('[CaptureAndDetectFoodUseCase]    - Image size: $imageSize bytes');
+    } else {
+      print(
+        '[CaptureAndDetectFoodUseCase] ⚠️ WARNING: Image file does not exist at saved path!',
+      );
+    }
+
     final currentItems = await _storageService.loadFoodItems();
     // Remove existing item with same ID if exists, then add updated one
     final updatedItems = currentItems.where((i) => i.id != item.id).toList();
     updatedItems.insert(0, item); // Add to beginning
     await _storageService.saveFoodItems(updatedItems);
-    print('[CaptureAndDetectFoodUseCase] ✅ FoodItem saved to storage');
+    print(
+      '[CaptureAndDetectFoodUseCase] ✅ FoodItem saved to storage (${updatedItems.length} total items)',
+    );
   }
 }
