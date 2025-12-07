@@ -60,10 +60,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
       final score = (item['score'] as num?)?.toDouble() ?? 0.0;
       final combined = topicality * 0.7 + score * 0.3;
 
-      scoredItems.add({
-        ...item,
-        'combinedScore': combined,
-      });
+      scoredItems.add({...item, 'combinedScore': combined});
 
       print(
         '[DataModel]   - ${item['description'] ?? item['label'] ?? 'Unknown'}: '
@@ -115,7 +112,8 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     // Use the best result (first in top 3) as the label
     String label = 'Food';
     if (top3.isNotEmpty) {
-      label = top3.first['description'] as String? ??
+      label =
+          top3.first['description'] as String? ??
           top3.first['label'] as String? ??
           detection.label ??
           'Food';
@@ -123,9 +121,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
       label = detection.label ?? 'Food';
     }
 
-    print(
-      '[DataModel] 🏷️ Label extracted: $label (from top result)',
-    );
+    print('[DataModel] 🏷️ Label extracted: $label (from top result)');
 
     final now = DateTime.now();
     final itemId = '${now.millisecondsSinceEpoch}_${imageFile.path.hashCode}';

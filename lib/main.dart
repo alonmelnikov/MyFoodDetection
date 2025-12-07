@@ -5,16 +5,20 @@ import 'controllers/food_history_controller.dart';
 import 'dataModels/food_history_data_model.dart';
 import 'services/api_service.dart';
 import 'services/food_detection_service.dart';
+import 'services/vision_detection_service.dart';
 import 'ui/screens/food_history_screen.dart';
 
 void main() {
   // Initialize services
   final apiService = HttpApiService();
-  final detectionService = GoogleVisionFoodDetectionService(
+  final visionService = GoogleVisionDetectionService(
     apiService: apiService,
   );
+  final foodDetectionService = FoodDetectionService(
+    visionService: visionService,
+  );
   final dataModel = FoodHistoryDataModelImpl(
-    detectionService: detectionService,
+    detectionService: foodDetectionService,
   );
 
   // Register controller with GetX (uses FoodHistoryDataModelInterface)
