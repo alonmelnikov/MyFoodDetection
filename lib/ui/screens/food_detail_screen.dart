@@ -11,7 +11,7 @@ class FoodDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<FoodDetailController>();
-    
+
     // Load food detail when screen opens
     controller.loadFoodDetail(fdcId);
 
@@ -22,9 +22,7 @@ class FoodDetailScreen extends StatelessWidget {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (controller.error.value != null) {
@@ -51,9 +49,7 @@ class FoodDetailScreen extends StatelessWidget {
 
         final foodDetail = controller.foodDetail.value;
         if (foodDetail == null) {
-          return const Center(
-            child: Text('No data available'),
-          );
+          return const Center(child: Text('No data available'));
         }
 
         return SingleChildScrollView(
@@ -65,8 +61,8 @@ class FoodDetailScreen extends StatelessWidget {
               Text(
                 foodDetail.description,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
 
@@ -74,9 +70,9 @@ class FoodDetailScreen extends StatelessWidget {
               if (foodDetail.brandOwner != null) ...[
                 Text(
                   'Brand: ${foodDetail.brandOwner}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -105,9 +101,9 @@ class FoodDetailScreen extends StatelessWidget {
               // Main nutrients
               Text(
                 'Nutrition Facts',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -144,9 +140,9 @@ class FoodDetailScreen extends StatelessWidget {
               // All nutrients
               Text(
                 'All Nutrients',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -155,7 +151,8 @@ class FoodDetailScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: foodDetail.nutrients.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final entry = foodDetail.nutrients.entries.elementAt(index);
                     return ListTile(
@@ -175,9 +172,9 @@ class FoodDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Text(
                   'Ingredients',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Card(
@@ -211,13 +208,9 @@ class FoodDetailScreen extends StatelessWidget {
         title: Text(name),
         trailing: Text(
           '${value.toStringAsFixed(1)} $unit',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 }
-

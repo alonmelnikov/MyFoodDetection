@@ -88,5 +88,3 @@ class FoodItem {
         .toList();
   }
 }
-
-

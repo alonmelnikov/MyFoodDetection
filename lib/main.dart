@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'controllers/food_detail_controller.dart';
-import 'controllers/food_history_controller.dart';
+import 'controllers/foodies_controller.dart';
 import 'dataModels/food_detail_data_model.dart';
-import 'dataModels/food_history_data_model.dart';
+import 'dataModels/foodies_data_model.dart';
 import 'services/api_service.dart';
 import 'services/food_data_service.dart';
 import 'services/food_detection_service.dart';
 import 'services/secrets_service.dart';
 import 'services/vision_detection_service.dart';
-import 'ui/screens/food_history_screen.dart';
+import 'ui/screens/foodies_screen.dart';
 
 void main() async {
   // Load environment variables from .env file
@@ -27,7 +27,7 @@ void main() async {
     apiService: apiService,
     secretsService: secretsService,
   );
-  final historyDataModel = FoodHistoryDataModelImpl(
+  final foodiesDataModel = FoodiesDataModelImpl(
     detectionService: foodDetectionService,
     foodDataService: foodDataService,
   );
@@ -36,7 +36,7 @@ void main() async {
   );
 
   // Register controllers with GetX
-  Get.put(FoodHistoryController(dataModel: historyDataModel));
+  Get.put(FoodiesController(dataModel: foodiesDataModel));
   Get.put(FoodDetailController(dataModel: detailDataModel));
 
   runApp(const MyApp());
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: FoodHistoryScreen(),
+      home: FoodiesScreen(),
     );
   }
 }

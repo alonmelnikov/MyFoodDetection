@@ -10,7 +10,7 @@ abstract class FoodDetailDataModelInterface {
 
 class FoodDetailDataModelImpl implements FoodDetailDataModelInterface {
   FoodDetailDataModelImpl({required FoodDataService foodDataService})
-      : _foodDataService = foodDataService;
+    : _foodDataService = foodDataService;
 
   final FoodDataService _foodDataService;
 
@@ -28,13 +28,14 @@ class FoodDetailDataModelImpl implements FoodDetailDataModelInterface {
     }
 
     print('[FoodDetailDataModel] ✅ Food detail loaded successfully');
-    
+
     final foodDetail = FoodDetail.fromJson(result.data!);
-    
+
     print('[FoodDetailDataModel] 📊 Food: ${foodDetail.description}');
-    print('[FoodDetailDataModel] 📊 Nutrients count: ${foodDetail.nutrients.length}');
+    print(
+      '[FoodDetailDataModel] 📊 Nutrients count: ${foodDetail.nutrients.length}',
+    );
 
     return foodDetail;
   }
 }
-

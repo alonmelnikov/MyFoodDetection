@@ -2,18 +2,18 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 
-import '../dataModels/food_history_data_model.dart';
+import '../dataModels/foodies_data_model.dart';
 import '../models/food_item.dart';
 
-class FoodHistoryController extends GetxController {
-  FoodHistoryController({required this.dataModel});
+class FoodiesController extends GetxController {
+  FoodiesController({required this.dataModel});
 
-  final FoodHistoryDataModelInterface dataModel;
+  final FoodiesDataModelInterface dataModel;
 
   // Reactive variables
   final RxList<FoodItem> items = <FoodItem>[].obs;
   final RxBool isLoading = false.obs;
-  final RxnString error = RxnString(); // Reactive nullable String
+  final RxnString error = RxnString();
 
   @override
   void onInit() {
@@ -68,3 +68,4 @@ class FoodHistoryController extends GetxController {
     }
   }
 }
+

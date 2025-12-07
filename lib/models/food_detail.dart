@@ -20,15 +20,15 @@ class FoodDetail {
 
   factory FoodDetail.fromJson(Map<String, dynamic> json) {
     final nutrients = <String, double>{};
-    
+
     // Parse food nutrients
     final foodNutrients = json['foodNutrients'] as List<dynamic>? ?? [];
     for (final nutrient in foodNutrients) {
       if (nutrient is! Map<String, dynamic>) continue;
-      
+
       final nutrientName = nutrient['nutrientName'] as String?;
       final value = (nutrient['value'] as num?)?.toDouble();
-      
+
       if (nutrientName != null && value != null) {
         nutrients[nutrientName] = value;
       }
@@ -53,43 +53,42 @@ class FoodDetail {
   /// Get calories (Energy)
   double get calories {
     return nutrients.entries
-            .firstWhere(
-              (e) => e.key.toLowerCase().contains('energy'),
-              orElse: () => const MapEntry('', 0),
-            )
-            .value;
+        .firstWhere(
+          (e) => e.key.toLowerCase().contains('energy'),
+          orElse: () => const MapEntry('', 0),
+        )
+        .value;
   }
 
   /// Get carbs
   double get carbs {
     return nutrients.entries
-            .firstWhere(
-              (e) => e.key.toLowerCase().contains('carbohydrate'),
-              orElse: () => const MapEntry('', 0),
-            )
-            .value;
+        .firstWhere(
+          (e) => e.key.toLowerCase().contains('carbohydrate'),
+          orElse: () => const MapEntry('', 0),
+        )
+        .value;
   }
 
   /// Get protein
   double get protein {
     return nutrients.entries
-            .firstWhere(
-              (e) => e.key.toLowerCase().contains('protein'),
-              orElse: () => const MapEntry('', 0),
-            )
-            .value;
+        .firstWhere(
+          (e) => e.key.toLowerCase().contains('protein'),
+          orElse: () => const MapEntry('', 0),
+        )
+        .value;
   }
 
   /// Get fat
   double get fat {
     return nutrients.entries
-            .firstWhere(
-              (e) =>
-                  e.key.toLowerCase().contains('total lipid') ||
-                  e.key.toLowerCase().contains('fat'),
-              orElse: () => const MapEntry('', 0),
-            )
-            .value;
+        .firstWhere(
+          (e) =>
+              e.key.toLowerCase().contains('total lipid') ||
+              e.key.toLowerCase().contains('fat'),
+          orElse: () => const MapEntry('', 0),
+        )
+        .value;
   }
 }
-

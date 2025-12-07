@@ -125,7 +125,7 @@ class UsdaFoodDataService implements FoodDataService {
     print('[FoodDataService] 📊 Parsing ${foodNutrients.length} nutrients');
 
     final nutrients = FoodNutrients.fromJson(foodNutrients);
-    
+
     // Add fdcId to nutrients
     final nutrientsWithId = FoodNutrients(
       calories: nutrients.calories,

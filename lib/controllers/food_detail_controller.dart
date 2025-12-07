@@ -15,7 +15,7 @@ class FoodDetailController extends GetxController {
 
   Future<void> loadFoodDetail(int fdcId) async {
     print('[FoodDetailController] 🎬 Loading food detail for FDC ID: $fdcId');
-    
+
     isLoading.value = true;
     error.value = null;
     foodDetail.value = null;
@@ -33,4 +33,3 @@ class FoodDetailController extends GetxController {
     }
   }
 }
-

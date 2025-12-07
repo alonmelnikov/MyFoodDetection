@@ -7,14 +7,14 @@ import '../models/vision_label.dart';
 import '../services/food_data_service.dart';
 import '../services/food_detection_service.dart';
 
-/// Interface for the food history view model / data model.
-abstract class FoodHistoryDataModelInterface {
+/// Interface for the foodies view model / data model.
+abstract class FoodiesDataModelInterface {
   Future<List<FoodItem>> loadHistory();
   Future<FoodItem> captureAndDetectFood(File imageFile);
 }
 
-class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
-  FoodHistoryDataModelImpl({
+class FoodiesDataModelImpl implements FoodiesDataModelInterface {
+  FoodiesDataModelImpl({
     required FoodDetectionService detectionService,
     required FoodDataService foodDataService,
   }) : _foodDetectionService = detectionService,
@@ -30,38 +30,38 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
 
   @override
   Future<FoodItem> captureAndDetectFood(File imageFile) async {
-    print('[DataModel] 🎯 captureAndDetectFood called');
-    print('[DataModel] 📂 Validating image file: ${imageFile.path}');
+    print('[FoodiesDataModel] 🎯 captureAndDetectFood called');
+    print('[FoodiesDataModel] 📂 Validating image file: ${imageFile.path}');
 
     if (!await imageFile.exists()) {
-      print('[DataModel] ❌ Image file does not exist!');
+      print('[FoodiesDataModel] ❌ Image file does not exist!');
       throw Exception('Captured image file does not exist.');
     }
 
-    print('[DataModel] ✅ Image file validated, calling detection service...');
+    print('[FoodiesDataModel] ✅ Image file validated, calling detection service...');
 
     final Result<List<VisionLabel>, NetworkError?> detectionResult =
         await _foodDetectionService.detectFood(imageFile);
 
     if (!detectionResult.isSuccess || detectionResult.data == null) {
-      print('[DataModel] ❌ Detection service returned failure');
-      print('[DataModel] ⚠️ Error: ${detectionResult.error}');
+      print('[FoodiesDataModel] ❌ Detection service returned failure');
+      print('[FoodiesDataModel] ⚠️ Error: ${detectionResult.error}');
       throw Exception('Food detection failed: ${detectionResult.error}');
     }
 
     final labels = detectionResult.data!;
 
     if (labels.isEmpty) {
-      print('[DataModel] ❌ No labels detected');
+      print('[FoodiesDataModel] ❌ No labels detected');
       throw Exception('No food labels detected in image');
     }
 
-    print('[DataModel] ✅ Detection service returned ${labels.length} labels');
+    print('[FoodiesDataModel] ✅ Detection service returned ${labels.length} labels');
 
     // Reverse labels to get highest scores first and limit to 5
     final labelsToTry = labels.reversed.take(5).toList();
     print(
-      '[DataModel] 🔄 Will try ${labelsToTry.length} labels (highest scores first, max 5)',
+      '[FoodiesDataModel] 🔄 Will try ${labelsToTry.length} labels (highest scores first, max 5)',
     );
 
     // Try each label until we get nutrition data
@@ -75,7 +75,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     for (var i = 0; i < labelsToTry.length; i++) {
       final label = labelsToTry[i];
       print(
-        '[DataModel] 🔄 Trying label ${i + 1}/${labelsToTry.length}: ${label.description}',
+        '[FoodiesDataModel] 🔄 Trying label ${i + 1}/${labelsToTry.length}: ${label.description}',
       );
 
       final nutrientsResult = await _foodDataService.getFoodNutrientsByName(
@@ -91,11 +91,11 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
         fat = nutrients.fat;
         fdcId = nutrients.fdcId;
 
-        print('[DataModel] ✅ Successfully got nutrients for: $selectedLabel');
+        print('[FoodiesDataModel] ✅ Successfully got nutrients for: $selectedLabel');
         break;
       } else {
         print(
-          '[DataModel] ⚠️ Failed to get nutrients for: ${label.description}',
+          '[FoodiesDataModel] ⚠️ Failed to get nutrients for: ${label.description}',
         );
       }
     }
@@ -103,7 +103,7 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     // If all labels failed, throw error
     if (selectedLabel == null) {
       print(
-        '[DataModel] ❌ Failed to get nutrients for all ${labelsToTry.length} labels tried',
+        '[FoodiesDataModel] ❌ Failed to get nutrients for all ${labelsToTry.length} labels tried',
       );
       throw Exception('Could not find nutrition data for detected food items');
     }
@@ -111,15 +111,15 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
     final now = DateTime.now();
     final itemId = '${now.millisecondsSinceEpoch}_${imageFile.path.hashCode}';
 
-    print('[DataModel] 🔨 Building FoodItem...');
-    print('[DataModel]    - ID: $itemId');
-    print('[DataModel]    - Name: $selectedLabel');
-    print('[DataModel]    - Path: ${imageFile.path}');
-    print('[DataModel]    - Calories: $calories');
-    print('[DataModel]    - Carbs: ${carbs}g');
-    print('[DataModel]    - Protein: ${protein}g');
-    print('[DataModel]    - Fat: ${fat}g');
-    print('[DataModel]    - Time: $now');
+    print('[FoodiesDataModel] 🔨 Building FoodItem...');
+    print('[FoodiesDataModel]    - ID: $itemId');
+    print('[FoodiesDataModel]    - Name: $selectedLabel');
+    print('[FoodiesDataModel]    - Path: ${imageFile.path}');
+    print('[FoodiesDataModel]    - Calories: $calories');
+    print('[FoodiesDataModel]    - Carbs: ${carbs}g');
+    print('[FoodiesDataModel]    - Protein: ${protein}g');
+    print('[FoodiesDataModel]    - Fat: ${fat}g');
+    print('[FoodiesDataModel]    - Time: $now');
 
     final item = FoodItem(
       id: itemId,
@@ -133,7 +133,8 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
       fdcId: fdcId,
     );
 
-    print('[DataModel] ✅ FoodItem created successfully');
+    print('[FoodiesDataModel] ✅ FoodItem created successfully');
     return item;
   }
 }
+
