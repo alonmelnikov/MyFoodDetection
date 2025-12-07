@@ -1,54 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../../dataModels/food_history_data_model.dart';
+import '../../dataModels/food_history_notifier.dart';
 import '../../models/food_item.dart';
 
-class FoodHistoryScreen extends StatefulWidget {
-  const FoodHistoryScreen({super.key, required this.dataModel});
-
-  final FoodHistoryDataModel dataModel;
-
-  @override
-  State<FoodHistoryScreen> createState() => _FoodHistoryScreenState();
-}
-
-class _FoodHistoryScreenState extends State<FoodHistoryScreen> {
-  List<FoodItem> _items = [];
-  bool _isLoading = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHistory();
-  }
-
-  Future<void> _loadHistory() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final items = await widget.dataModel.loadHistory();
-      if (mounted) {
-        setState(() {
-          _items = items;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = 'Failed to load history';
-          _isLoading = false;
-        });
-      }
-    }
-  }
+class FoodHistoryScreen extends ConsumerWidget {
+  const FoodHistoryScreen({super.key});
 
   Future<File?> _captureImage() async {
     final picker = ImagePicker();
@@ -61,64 +20,40 @@ class _FoodHistoryScreenState extends State<FoodHistoryScreen> {
     return file;
   }
 
-  Future<void> _captureFood() async {
-    final file = await _captureImage();
-    if (file == null) return;
-
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final item = await widget.dataModel.captureAndDetectFood(file);
-      if (mounted) {
-        setState(() {
-          _items = [item, ..._items];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = 'Failed to analyze food. Please try again.';
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(foodHistoryNotifierProvider);
+    final notifier = ref.read(foodHistoryNotifierProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Food History'), centerTitle: true),
       body: Column(
         children: [
-          if (_error != null)
+          if (state.error != null)
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text(
-                _error!,
+                state.error!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           Expanded(
-            child: _isLoading && _items.isEmpty
+            child: state.isLoading && state.items.isEmpty
                 ? const Center(child: CircularProgressIndicator())
-                : _items.isEmpty
-                    ? const _EmptyState()
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        itemBuilder: (context, index) {
-                          final item = _items[index];
-                          return _FoodHistoryListItem(item: item);
-                        },
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemCount: _items.length,
-                      ),
+                : state.items.isEmpty
+                ? const _EmptyState()
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = state.items[index];
+                      return _FoodHistoryListItem(item: item);
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemCount: state.items.length,
+                  ),
           ),
           SafeArea(
             top: false,
@@ -127,7 +62,13 @@ class _FoodHistoryScreenState extends State<FoodHistoryScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _captureFood,
+                  onPressed: state.isLoading
+                      ? null
+                      : () async {
+                          final file = await _captureImage();
+                          if (file == null) return;
+                          await notifier.captureFood(file);
+                        },
                   icon: const Icon(Icons.camera_alt_outlined),
                   label: const Text('Capture Food'),
                   style: ElevatedButton.styleFrom(
@@ -167,10 +108,10 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap "Capture Food" to start tracking your meals.',
+            'Tap “Capture Food” to start tracking your meals.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -315,8 +256,8 @@ class _MacroChip extends StatelessWidget {
           Text(
             '$label ${value.toStringAsFixed(0)}g',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ],
       ),
