@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../dataModels/foodies_data_model.dart';
 import '../models/food_item.dart';
@@ -9,6 +10,7 @@ class FoodiesController extends GetxController {
   FoodiesController({required this.dataModel});
 
   final FoodiesDataModelInterface dataModel;
+  final ImagePicker _picker = ImagePicker();
 
   // Reactive variables
   final RxList<FoodItem> items = <FoodItem>[].obs;
@@ -35,34 +37,59 @@ class FoodiesController extends GetxController {
     }
   }
 
-  Future<void> captureFood(File imageFile) async {
+  Future<void> captureFood() async {
     print('[CaptureFood] 🎬 Starting captureFood flow...');
-    print('[CaptureFood] 📸 Image file: ${imageFile.path}');
-    print('[CaptureFood] 📂 File exists: ${await imageFile.exists()}');
+
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+
+      if (photo == null) {
+        print('[CaptureFood] 📷 User cancelled camera');
+        return;
+      }
+
+      print('[CaptureFood] 📸 Photo captured: ${photo.path}');
+
+      final File imageFile = File(photo.path);
+      await _processAndDetectFood(imageFile);
+    } catch (e, stackTrace) {
+      print('[CaptureFood] ❌ Camera error: $e');
+      print('[CaptureFood] 📚 Stack trace: $stackTrace');
+      error.value = 'Failed to capture photo. Please try again.';
+    }
+  }
+
+  Future<void> _processAndDetectFood(File imageFile) async {
+    print('[ProcessFood] 🎬 Starting food processing...');
+    print('[ProcessFood] 📸 Image file: ${imageFile.path}');
+    print('[ProcessFood] 📂 File exists: ${await imageFile.exists()}');
 
     isLoading.value = true;
     error.value = null;
-    print('[CaptureFood] ⏳ State set to loading, calling data model...');
+    print('[ProcessFood] ⏳ State set to loading, calling data model...');
 
     try {
       final item = await dataModel.captureAndDetectFood(imageFile);
-      print('[CaptureFood] ✅ Detection successful!');
-      print('[CaptureFood] 🍕 Food name: ${item.name}');
-      print('[CaptureFood] 🆔 Item ID: ${item.id}');
-      print('[CaptureFood] 📁 Saved at: ${item.imagePath}');
-      print('[CaptureFood] 🕐 Captured at: ${item.capturedAt}');
-      print('[CaptureFood] 📊 Current items count: ${items.length}');
+      print('[ProcessFood] ✅ Detection successful!');
+      print('[ProcessFood] 🍕 Food name: ${item.name}');
+      print('[ProcessFood] 🆔 Item ID: ${item.id}');
+      print('[ProcessFood] 📁 Saved at: ${item.imagePath}');
+      print('[ProcessFood] 🕐 Captured at: ${item.capturedAt}');
+      print('[ProcessFood] 📊 Current items count: ${items.length}');
 
       items.insert(0, item); // Add to beginning of list
 
-      print('[CaptureFood] ✅ State updated, new items count: ${items.length}');
+      print('[ProcessFood] ✅ State updated, new items count: ${items.length}');
     } catch (e, stackTrace) {
-      print('[CaptureFood] ❌ Error occurred: $e');
-      print('[CaptureFood] 📚 Stack trace: $stackTrace');
+      print('[ProcessFood] ❌ Error occurred: $e');
+      print('[ProcessFood] 📚 Stack trace: $stackTrace');
 
       error.value = 'Failed to analyze food. Please try again.';
 
-      print('[CaptureFood] ⚠️ Error state set');
+      print('[ProcessFood] ⚠️ Error state set');
     } finally {
       isLoading.value = false;
     }

@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/foodies_controller.dart';
 import '../../models/food_item.dart';
@@ -13,39 +10,10 @@ import 'food_detail_screen.dart';
 class FoodiesScreen extends StatelessWidget {
   FoodiesScreen({super.key});
 
-  final ImagePicker _picker = ImagePicker();
+  final _controller = Get.find<FoodiesController>();
 
-  Future<void> _captureFood(BuildContext context) async {
-    final controller = Get.find<FoodiesController>();
-
-    try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-      );
-
-      if (photo == null) {
-        print('[FoodiesScreen] 📷 User cancelled camera');
-        return;
-      }
-
-      print('[FoodiesScreen] 📸 Photo captured: ${photo.path}');
-
-      final File imageFile = File(photo.path);
-      await controller.captureFood(imageFile);
-    } catch (e, stackTrace) {
-      print('[FoodiesScreen] ❌ Camera error: $e');
-      print('[FoodiesScreen] 📚 Stack trace: $stackTrace');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to capture photo: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  Future<void> _captureFood() async {
+    await _controller.captureFood();
   }
 
   @override
@@ -113,7 +81,7 @@ class FoodiesScreen extends StatelessWidget {
         );
       }),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _captureFood(context),
+        onPressed: _captureFood,
         icon: const Icon(Icons.camera_alt),
         label: const Text('Capture Food'),
       ),
