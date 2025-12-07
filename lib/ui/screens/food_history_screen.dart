@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../dataModels/food_history_notifier.dart';
+
+import '../../controllers/food_history_controller.dart';
 import '../../models/food_item.dart';
 
-class FoodHistoryScreen extends ConsumerWidget {
+class FoodHistoryScreen extends StatelessWidget {
   const FoodHistoryScreen({super.key});
 
   Future<File?> _captureImage() async {
@@ -21,39 +22,48 @@ class FoodHistoryScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(foodHistoryNotifierProvider);
-    final notifier = ref.read(foodHistoryNotifierProvider.notifier);
+  Widget build(BuildContext context) {
+    final controller = Get.find<FoodHistoryController>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Food History'), centerTitle: true),
       body: Column(
         children: [
-          if (state.error != null)
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                state.error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ),
+          Obx(() {
+            if (controller.error.value != null) {
+              return Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  controller.error.value!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           Expanded(
-            child: state.isLoading && state.items.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : state.items.isEmpty
-                ? const _EmptyState()
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    itemBuilder: (context, index) {
-                      final item = state.items[index];
-                      return _FoodHistoryListItem(item: item);
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemCount: state.items.length,
-                  ),
+            child: Obx(() {
+              if (controller.isLoading.value && controller.items.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (controller.items.isEmpty) {
+                return const _EmptyState();
+              }
+
+              return ListView.separated(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                itemBuilder: (context, index) {
+                  final item = controller.items[index];
+                  return _FoodHistoryListItem(item: item);
+                },
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemCount: controller.items.length,
+              );
+            }),
           ),
           SafeArea(
             top: false,
@@ -61,23 +71,25 @@ class FoodHistoryScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: state.isLoading
-                      ? null
-                      : () async {
-                          final file = await _captureImage();
-                          if (file == null) return;
-                          await notifier.captureFood(file);
-                        },
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Capture Food'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Obx(() {
+                  return ElevatedButton.icon(
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () async {
+                            final file = await _captureImage();
+                            if (file == null) return;
+                            await controller.captureFood(file);
+                          },
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text('Capture Food'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ),
           ),
@@ -108,10 +120,10 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap “Capture Food” to start tracking your meals.',
+            'Tap "Capture Food" to start tracking your meals.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -256,8 +268,8 @@ class _MacroChip extends StatelessWidget {
           Text(
             '$label ${value.toStringAsFixed(0)}g',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
           ),
         ],
       ),

@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 
+import 'controllers/food_history_controller.dart';
+import 'dataModels/food_history_data_model.dart';
+import 'services/api_service.dart';
+import 'services/food_detection_service.dart';
 import 'ui/screens/food_history_screen.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  // Initialize services
+  final apiService = HttpApiService();
+  final detectionService = GoogleVisionFoodDetectionService(
+    apiService: apiService,
+  );
+  final dataModel = FoodHistoryDataModelImpl(
+    detectionService: detectionService,
+  );
+
+  // Register controller with GetX
+  Get.put(FoodHistoryController(dataModel: dataModel));
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,7 +28,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Food Tracker',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
