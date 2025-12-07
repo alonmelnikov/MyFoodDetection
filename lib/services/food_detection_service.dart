@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import '../enums/network_errors.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 import '../models/vision_label.dart';
 import 'vision_detection_service.dart';
 

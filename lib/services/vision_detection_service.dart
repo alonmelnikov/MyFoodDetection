@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../enums/network_errors.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 import '../models/vision_detection_data.dart';
 import 'api_service.dart';
 

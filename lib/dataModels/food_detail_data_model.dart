@@ -1,6 +1,6 @@
 import '../enums/network_errors.dart';
 import '../models/food_detail.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 import '../services/food_data_service.dart';
 
 /// Interface for the food detail data model.

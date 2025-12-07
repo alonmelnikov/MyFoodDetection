@@ -2,7 +2,7 @@ import 'dart:io';
 
 import '../enums/network_errors.dart';
 import '../models/food_item.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 import '../models/vision_label.dart';
 import '../services/food_data_service.dart';
 import '../services/food_detection_service.dart';

@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../enums/network_errors.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 
 /// Protocol (interface) for making HTTP API calls.
 abstract class ApiService {

@@ -1,6 +1,6 @@
 import '../enums/network_errors.dart';
 import '../models/food_nutrients.dart';
-import '../models/result.dart';
+import '../core/result.dart';
 import 'api_service.dart';
 import 'foodies_storage_service.dart';
 import 'secrets_service.dart';
