@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'controllers/food_history_controller.dart';
-import 'dataModels/food_history_data_model.dart';
 import 'services/api_service.dart';
 import 'services/food_detection_service.dart';
 import 'ui/screens/food_history_screen.dart';
@@ -13,12 +12,9 @@ void main() {
   final detectionService = GoogleVisionFoodDetectionService(
     apiService: apiService,
   );
-  final dataModel = FoodHistoryDataModelImpl(
-    detectionService: detectionService,
-  );
 
-  // Register controller with GetX
-  Get.put(FoodHistoryController(dataModel: dataModel));
+  // Register controller with GetX (controller implements FoodHistoryDataModel)
+  Get.put(FoodHistoryController(detectionService: detectionService));
 
   runApp(const MyApp());
 }
@@ -37,7 +33,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const FoodHistoryScreen(),
+      home: FoodHistoryScreen(),
     );
   }
 }

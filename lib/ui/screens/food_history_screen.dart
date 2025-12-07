@@ -122,8 +122,8 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Tap "Capture Food" to start tracking your meals.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -268,8 +268,8 @@ class _MacroChip extends StatelessWidget {
           Text(
             '$label ${value.toStringAsFixed(0)}g',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ],
       ),
