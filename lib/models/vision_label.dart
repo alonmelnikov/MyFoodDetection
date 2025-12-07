@@ -20,4 +20,3 @@ class VisionLabel {
   /// Calculate combined score: topicality * 0.7 + score * 0.3
   double get combinedScore => topicality * 0.7 + score * 0.3;
 }
-

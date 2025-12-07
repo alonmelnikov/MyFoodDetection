@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import '../enums/network_errors.dart';
-import '../models/food_detection_result.dart';
 import '../models/food_item.dart';
 import '../models/result.dart';
+import '../models/vision_label.dart';
+import '../services/food_data_service.dart';
 import '../services/food_detection_service.dart';
 
 /// Interface for the food history view model / data model.
@@ -13,73 +14,18 @@ abstract class FoodHistoryDataModelInterface {
 }
 
 class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
-  FoodHistoryDataModelImpl({required FoodDetectionService detectionService})
-    : _detectionService = detectionService;
+  FoodHistoryDataModelImpl({
+    required FoodDetectionService detectionService,
+    required FoodDataService foodDataService,
+  }) : _foodDetectionService = detectionService,
+       _foodDataService = foodDataService;
 
-  final FoodDetectionService _detectionService;
+  final FoodDetectionService _foodDetectionService;
+  final FoodDataService _foodDataService;
 
   @override
   Future<List<FoodItem>> loadHistory() async {
     return <FoodItem>[];
-  }
-
-  /// Process detection results and return top 3 labels based on combined score.
-  ///
-  /// Combined score = topicality * 0.7 + score * 0.3
-  List<Map<String, dynamic>> getTop3Results(Map<String, dynamic> rawJson) {
-    print('[DataModel] 📊 Processing results to get top 3...');
-
-    // Extract items from the raw JSON
-    List<dynamic> items = [];
-
-    // Try different possible JSON structures
-    if (rawJson.containsKey('results')) {
-      items = rawJson['results'] as List<dynamic>? ?? [];
-    } else if (rawJson.containsKey('labels')) {
-      items = rawJson['labels'] as List<dynamic>? ?? [];
-    } else if (rawJson.containsKey('responses')) {
-      final responses = rawJson['responses'] as List<dynamic>? ?? [];
-      if (responses.isNotEmpty) {
-        final first = responses.first as Map<String, dynamic>;
-        items = first['labelAnnotations'] as List<dynamic>? ?? [];
-      }
-    }
-
-    if (items.isEmpty) {
-      print('[DataModel] ⚠️ No items found in raw JSON');
-      return [];
-    }
-
-    // Calculate combined score for each item
-    final scoredItems = <Map<String, dynamic>>[];
-
-    for (final item in items) {
-      if (item is! Map<String, dynamic>) continue;
-
-      final topicality = (item['topicality'] as num?)?.toDouble() ?? 0.0;
-      final score = (item['score'] as num?)?.toDouble() ?? 0.0;
-      final combined = topicality * 0.7 + score * 0.3;
-
-      scoredItems.add({...item, 'combinedScore': combined});
-
-      print(
-        '[DataModel]   - ${item['description'] ?? item['label'] ?? 'Unknown'}: '
-        'topicality=$topicality, score=$score, combined=$combined',
-      );
-    }
-
-    // Sort by combined score (descending)
-    scoredItems.sort((a, b) {
-      final scoreA = a['combinedScore'] as double;
-      final scoreB = b['combinedScore'] as double;
-      return scoreB.compareTo(scoreA);
-    });
-
-    // Return top 3
-    final top3 = scoredItems.take(3).toList();
-    print('[DataModel] ✅ Top 3 results selected');
-
-    return top3;
   }
 
   @override
@@ -94,8 +40,8 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
 
     print('[DataModel] ✅ Image file validated, calling detection service...');
 
-    final Result<FoodDetectionResult?, NetworkError?> detectionResult =
-        await _detectionService.detectFood(imageFile);
+    final Result<List<VisionLabel>, NetworkError?> detectionResult =
+        await _foodDetectionService.detectFood(imageFile);
 
     if (!detectionResult.isSuccess || detectionResult.data == null) {
       print('[DataModel] ❌ Detection service returned failure');
@@ -103,43 +49,84 @@ class FoodHistoryDataModelImpl implements FoodHistoryDataModelInterface {
       throw Exception('Food detection failed: ${detectionResult.error}');
     }
 
-    print('[DataModel] ✅ Detection service succeeded');
-    final detection = detectionResult.data!;
+    final labels = detectionResult.data!;
 
-    // Get top 3 results based on combined score
-    final top3 = getTop3Results(detection.raw);
-
-    // Use the best result (first in top 3) as the label
-    String label = 'Food';
-    if (top3.isNotEmpty) {
-      label =
-          top3.first['description'] as String? ??
-          top3.first['label'] as String? ??
-          detection.label ??
-          'Food';
-    } else {
-      label = detection.label ?? 'Food';
+    if (labels.isEmpty) {
+      print('[DataModel] ❌ No labels detected');
+      throw Exception('No food labels detected in image');
     }
 
-    print('[DataModel] 🏷️ Label extracted: $label (from top result)');
+    print('[DataModel] ✅ Detection service returned ${labels.length} labels');
+
+    // Reverse labels to get highest scores first and limit to 5
+    final labelsToTry = labels.reversed.take(5).toList();
+    print(
+      '[DataModel] 🔄 Will try ${labelsToTry.length} labels (highest scores first, max 5)',
+    );
+
+    // Try each label until we get nutrition data
+    String? selectedLabel;
+    double calories = 0;
+    double carbs = 0;
+    double protein = 0;
+    double fat = 0;
+
+    for (var i = 0; i < labelsToTry.length; i++) {
+      final label = labelsToTry[i];
+      print(
+        '[DataModel] 🔄 Trying label ${i + 1}/${labelsToTry.length}: ${label.description}',
+      );
+
+      final nutrientsResult = await _foodDataService.getFoodNutrientsByName(
+        label.description,
+      );
+
+      if (nutrientsResult.isSuccess && nutrientsResult.data != null) {
+        final nutrients = nutrientsResult.data!;
+        selectedLabel = label.description;
+        calories = nutrients.calories;
+        carbs = nutrients.carbs;
+        protein = nutrients.protein;
+        fat = nutrients.fat;
+
+        print('[DataModel] ✅ Successfully got nutrients for: $selectedLabel');
+        break;
+      } else {
+        print(
+          '[DataModel] ⚠️ Failed to get nutrients for: ${label.description}',
+        );
+      }
+    }
+
+    // If all labels failed, throw error
+    if (selectedLabel == null) {
+      print(
+        '[DataModel] ❌ Failed to get nutrients for all ${labelsToTry.length} labels tried',
+      );
+      throw Exception('Could not find nutrition data for detected food items');
+    }
 
     final now = DateTime.now();
     final itemId = '${now.millisecondsSinceEpoch}_${imageFile.path.hashCode}';
 
     print('[DataModel] 🔨 Building FoodItem...');
     print('[DataModel]    - ID: $itemId');
-    print('[DataModel]    - Name: $label');
+    print('[DataModel]    - Name: $selectedLabel');
     print('[DataModel]    - Path: ${imageFile.path}');
+    print('[DataModel]    - Calories: $calories');
+    print('[DataModel]    - Carbs: ${carbs}g');
+    print('[DataModel]    - Protein: ${protein}g');
+    print('[DataModel]    - Fat: ${fat}g');
     print('[DataModel]    - Time: $now');
 
     final item = FoodItem(
       id: itemId,
-      name: label,
+      name: selectedLabel,
       imagePath: imageFile.path,
-      calories: 0,
-      carbs: 0,
-      protein: 0,
-      fat: 0,
+      calories: calories,
+      carbs: carbs,
+      protein: protein,
+      fat: fat,
       capturedAt: now,
     );
 

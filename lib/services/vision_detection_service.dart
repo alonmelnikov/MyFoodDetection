@@ -17,7 +17,7 @@ abstract class VisionDetectionService {
 /// Vision detection service that sends image bytes to a Cloud Run endpoint.
 class GoogleVisionDetectionService implements VisionDetectionService {
   GoogleVisionDetectionService({required ApiService apiService})
-      : _apiService = apiService;
+    : _apiService = apiService;
 
   final ApiService _apiService;
 
@@ -68,4 +68,3 @@ class GoogleVisionDetectionService implements VisionDetectionService {
     }
   }
 }
-

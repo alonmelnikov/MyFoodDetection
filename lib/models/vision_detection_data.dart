@@ -6,7 +6,20 @@ class VisionDetectionData {
   VisionDetectionData({required this.labels});
 
   factory VisionDetectionData.fromJson(Map<String, dynamic> json) {
-    final List<dynamic> labelsJson = json['labels'] as List<dynamic>? ?? [];
+    // Handle Google Vision API response structure: responses[0].labelAnnotations
+    List<dynamic> labelsJson = [];
+
+    if (json.containsKey('responses')) {
+      final responses = json['responses'] as List<dynamic>?;
+      if (responses != null && responses.isNotEmpty) {
+        final firstResponse = responses.first as Map<String, dynamic>;
+        labelsJson = firstResponse['labelAnnotations'] as List<dynamic>? ?? [];
+      }
+    } else if (json.containsKey('labels')) {
+      // Fallback for simplified structure
+      labelsJson = json['labels'] as List<dynamic>? ?? [];
+    }
+
     final labels = labelsJson
         .map((item) => VisionLabel.fromJson(item as Map<String, dynamic>))
         .toList();
@@ -22,4 +35,3 @@ class VisionDetectionData {
     return sorted;
   }
 }
-

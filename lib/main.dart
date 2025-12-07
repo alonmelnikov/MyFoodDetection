@@ -4,21 +4,30 @@ import 'package:get/get.dart';
 import 'controllers/food_history_controller.dart';
 import 'dataModels/food_history_data_model.dart';
 import 'services/api_service.dart';
+import 'services/food_data_service.dart';
 import 'services/food_detection_service.dart';
+import 'services/secrets_service.dart';
 import 'services/vision_detection_service.dart';
 import 'ui/screens/food_history_screen.dart';
 
-void main() {
+void main() async {
+  // Load environment variables from .env file
+  await EnvSecretsService.load();
+
   // Initialize services
   final apiService = HttpApiService();
-  final visionService = GoogleVisionDetectionService(
-    apiService: apiService,
-  );
+  final secretsService = EnvSecretsService();
+  final visionService = GoogleVisionDetectionService(apiService: apiService);
   final foodDetectionService = FoodDetectionService(
     visionService: visionService,
   );
+  final foodDataService = UsdaFoodDataService(
+    apiService: apiService,
+    secretsService: secretsService,
+  );
   final dataModel = FoodHistoryDataModelImpl(
     detectionService: foodDetectionService,
+    foodDataService: foodDataService,
   );
 
   // Register controller with GetX (uses FoodHistoryDataModelInterface)

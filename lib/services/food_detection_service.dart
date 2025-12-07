@@ -1,20 +1,20 @@
 import 'dart:io';
 
 import '../enums/network_errors.dart';
-import '../models/food_detection_result.dart';
 import '../models/result.dart';
+import '../models/vision_label.dart';
 import 'vision_detection_service.dart';
 
 /// Food detection service that uses VisionDetectionService to fetch labels
 /// and sorts them by combined score (topicality * 0.7 + score * 0.3).
 class FoodDetectionService {
   FoodDetectionService({required VisionDetectionService visionService})
-      : _visionService = visionService;
+    : _visionService = visionService;
 
   final VisionDetectionService _visionService;
 
-  /// Detects food from image and returns sorted results.
-  Future<Result<FoodDetectionResult?, NetworkError?>> detectFood(
+  /// Detects food from image and returns all VisionLabels sorted by score.
+  Future<Result<List<VisionLabel>, NetworkError?>> detectFood(
     File imageFile,
   ) async {
     print('[FoodDetection] 🚀 Starting food detection...');
@@ -45,39 +45,12 @@ class FoodDetectionService {
       );
     }
 
-    // Use the best label (highest combined score = last in sorted list)
-    final bestLabel = sortedLabels.isNotEmpty ? sortedLabels.last : null;
-
-    if (bestLabel == null) {
+    if (sortedLabels.isEmpty) {
       print('[FoodDetection] ⚠️ No labels found');
-      return Result.success(
-        FoodDetectionResult(
-          label: 'Food',
-          confidence: 0.0,
-          raw: {},
-        ),
-      );
+      return Result.success([]);
     }
 
-    print('[FoodDetection] ✅ Best label: ${bestLabel.description}');
-    print('[FoodDetection] 📊 Combined score: ${bestLabel.combinedScore}');
-
-    // Create FoodDetectionResult with the best label
-    final result = FoodDetectionResult(
-      label: bestLabel.description,
-      confidence: bestLabel.combinedScore,
-      raw: {
-        'labels': sortedLabels
-            .map((l) => {
-                  'description': l.description,
-                  'score': l.score,
-                  'topicality': l.topicality,
-                  'combinedScore': l.combinedScore,
-                })
-            .toList(),
-      },
-    );
-
-    return Result.success(result);
+    print('[FoodDetection] ✅ Returning all ${sortedLabels.length} labels');
+    return Result.success(sortedLabels);
   }
 }
