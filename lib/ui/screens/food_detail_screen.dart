@@ -3,29 +3,38 @@ import 'package:get/get.dart';
 
 import '../../controllers/food_detail_controller.dart';
 
-class FoodDetailScreen extends StatelessWidget {
+class FoodDetailScreen extends StatefulWidget {
   const FoodDetailScreen({super.key, required this.fdcId});
 
   final int fdcId;
 
   @override
+  State<FoodDetailScreen> createState() => _FoodDetailScreenState();
+}
+
+class _FoodDetailScreenState extends State<FoodDetailScreen> {
+  late final FoodDetailController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.find<FoodDetailController>();
+    _controller.loadFoodDetail(widget.fdcId);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = Get.find<FoodDetailController>();
-
-    // Load food detail when screen opens
-    controller.loadFoodDetail(fdcId);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Food Details'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (_controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.error.value != null) {
+        if (_controller.error.value != null) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -33,13 +42,13 @@ class FoodDetailScreen extends StatelessWidget {
                 const Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
                 Text(
-                  controller.error.value!,
+                  _controller.error.value!,
                   style: const TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => controller.loadFoodDetail(fdcId),
+                  onPressed: () => _controller.loadFoodDetail(widget.fdcId),
                   child: const Text('Retry'),
                 ),
               ],
@@ -47,7 +56,7 @@ class FoodDetailScreen extends StatelessWidget {
           );
         }
 
-        final foodDetail = controller.foodDetail.value;
+        final foodDetail = _controller.foodDetail.value;
         if (foodDetail == null) {
           return const Center(child: Text('No data available'));
         }
@@ -61,8 +70,8 @@ class FoodDetailScreen extends StatelessWidget {
               Text(
                 foodDetail.description,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
 
