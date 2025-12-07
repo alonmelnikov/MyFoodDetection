@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/foodies_controller.dart';
 import '../../models/food_item.dart';
@@ -11,14 +12,20 @@ class FoodiesScreen extends StatelessWidget {
   FoodiesScreen({super.key});
 
   final _controller = Get.find<FoodiesController>();
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> _captureFood() async {
-    await _controller.captureFood();
+    final XFile? photo = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+
+    await _controller.captureFood(photo);
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<FoodiesController>();
+
 
     return Scaffold(
       appBar: AppBar(
@@ -26,21 +33,21 @@ class FoodiesScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Obx(() {
-        if (controller.error.value != null) {
+        if (_controller.error.value != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(controller.error.value!),
+                content: Text(_controller.error.value!),
                 backgroundColor: Colors.red,
               ),
             );
-            controller.error.value = null;
+            _controller.error.value = null;
           });
         }
 
         return GenericList<FoodItem>(
-          items: controller.items,
-          isLoading: controller.isLoading.value,
+          items: _controller.items,
+          isLoading: _controller.isLoading.value,
           emptyMessage: 'No food items yet.\nTap + to capture your first meal!',
           emptyIcon: Icons.restaurant_menu,
           itemBuilder: (context, item, index) {
@@ -88,4 +95,3 @@ class FoodiesScreen extends StatelessWidget {
     );
   }
 }
-

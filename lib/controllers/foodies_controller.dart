@@ -10,7 +10,6 @@ class FoodiesController extends GetxController {
   FoodiesController({required this.dataModel});
 
   final FoodiesDataModelInterface dataModel;
-  final ImagePicker _picker = ImagePicker();
 
   // Reactive variables
   final RxList<FoodItem> items = <FoodItem>[].obs;
@@ -37,29 +36,16 @@ class FoodiesController extends GetxController {
     }
   }
 
-  Future<void> captureFood() async {
-    print('[CaptureFood] 🎬 Starting captureFood flow...');
-
-    try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-      );
-
-      if (photo == null) {
-        print('[CaptureFood] 📷 User cancelled camera');
-        return;
-      }
-
-      print('[CaptureFood] 📸 Photo captured: ${photo.path}');
-
-      final File imageFile = File(photo.path);
-      await _processAndDetectFood(imageFile);
-    } catch (e, stackTrace) {
-      print('[CaptureFood] ❌ Camera error: $e');
-      print('[CaptureFood] 📚 Stack trace: $stackTrace');
-      error.value = 'Failed to capture photo. Please try again.';
+  Future<void> captureFood(XFile? photo) async {
+    if (photo == null) {
+      print('[FoodiesController] 📷 User cancelled camera');
+      return;
     }
+
+    print('[FoodiesController] 📸 Photo captured: ${photo.path}');
+
+    final File imageFile = File(photo.path);
+    await _processAndDetectFood(imageFile);
   }
 
   Future<void> _processAndDetectFood(File imageFile) async {
