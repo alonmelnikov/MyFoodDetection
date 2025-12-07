@@ -25,6 +25,9 @@ void main() async {
   final foodiesStorageService = FoodiesStorageService(
     storageService: storageService,
   );
+
+  // Clean up expired cache on app startup
+  await foodiesStorageService.cleanupExpiredCache();
   final visionService = GoogleVisionDetectionService(apiService: apiService);
   final foodDetectionService = FoodDetectionService(
     visionService: visionService,

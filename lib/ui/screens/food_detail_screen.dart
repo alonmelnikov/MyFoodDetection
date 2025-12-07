@@ -13,13 +13,12 @@ class FoodDetailScreen extends StatefulWidget {
 }
 
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
-  late final FoodDetailController _controller;
+  final _controller = Get.find<FoodDetailsController>();
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FoodDetailController>();
-    _controller.loadFoodDetail(widget.fdcId);
+    _controller.loadFoodDetails(widget.fdcId);
   }
 
   @override
@@ -48,7 +47,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => _controller.loadFoodDetail(widget.fdcId),
+                  onPressed: () => _controller.loadFoodDetails(widget.fdcId),
                   child: const Text('Retry'),
                 ),
               ],

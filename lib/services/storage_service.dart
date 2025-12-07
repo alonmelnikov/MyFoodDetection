@@ -18,6 +18,9 @@ abstract class StorageService {
 
   /// Clear all data
   Future<void> clear();
+
+  /// List all stored keys (for cleanup operations)
+  Future<List<String>> listKeys();
 }
 
 /// File-based storage service implementation
@@ -122,6 +125,34 @@ class FileStorageService implements StorageService {
       }
     } catch (e) {
       print('[FileStorage] ❌ Failed to clear storage, error: $e');
+    }
+  }
+
+  @override
+  Future<List<String>> listKeys() async {
+    try {
+      final dir = await _getStorageDirectory();
+      if (!await dir.exists()) {
+        return [];
+      }
+
+      final files = dir.listSync();
+      final keys = <String>[];
+
+      for (final file in files) {
+        if (file is File && file.path.endsWith('.json')) {
+          // Extract key from filename (remove .json extension)
+          final fileName = file.path.split('/').last;
+          final key = fileName.replaceAll('.json', '');
+          keys.add(key);
+        }
+      }
+
+      print('[FileStorage] 📋 Found ${keys.length} cached keys');
+      return keys;
+    } catch (e) {
+      print('[FileStorage] ❌ Failed to list keys, error: $e');
+      return [];
     }
   }
 }
