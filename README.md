@@ -82,7 +82,6 @@ di/                              # Dependency Injection
 3. `FoodiesScreen` displays food history with photos
 4. User can tap item to view detailed nutrition in `FoodDetailScreen`
 
-## Setup
 
 ### Prerequisites
 
@@ -92,54 +91,7 @@ di/                              # Dependency Injection
 - Google Cloud Vision API access (via Cloud Run endpoint)
 - USDA FoodData Central API key
 
-### Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/alonmelnikov/MyFoodDetection.git
-cd MyFoodDetection
-```
-
-2. Install dependencies:
-```bash
-flutter pub get
-```
-
-3. Create `.env` file in the project root:
-```bash
-# USDA FoodData Central API Key
-USDA_API_KEY=your-api-key-here
-```
-
-4. Run the app:
-```bash
-# iOS Simulator
-flutter run -d "iPhone Simulator"
-
-# Android Emulator
-flutter run -d emulator
-
-# Physical device
-flutter run -d <device-id>
-```
-
-## Configuration
-
-### API Keys
-
-The app uses environment variables to store API keys securely:
-
-- **USDA API Key**: Get yours at [USDA FoodData Central](https://fdc.nal.usda.gov/api-key-signup.html)
-- **Google Cloud Vision**: Currently uses a Cloud Run endpoint (hardcoded in `VisionDetectionService`)
-
-### Environment Variables
-
-Create a `.env` file with:
-```env
-USDA_API_KEY=your-usda-api-key-here
-```
-
-**Note**: The `.env` file is gitignored and will not be committed.
 
 ## Dependencies
 
