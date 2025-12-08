@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/foodies_controller.dart';
+import '../../controllers/foodies_controller_interface.dart';
 import '../../models/food_item.dart';
 import '../custom_widgets/generic_list.dart';
 import '../custom_widgets/generic_list_item.dart';
@@ -11,10 +12,11 @@ import 'food_detail_screen.dart';
 class FoodiesScreen extends StatelessWidget {
   FoodiesScreen({super.key});
 
-  final _controller = Get.find<FoodiesController>();
+  final FoodiesControllerInterface _controller = Get.find<FoodiesController>();
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _captureFood() async {
+    _controller.mainActionRequested();
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 85,

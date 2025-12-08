@@ -1,13 +1,16 @@
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../core/base_interface_controller.dart';
 import '../core/food_detection_exception.dart';
 import '../models/food_item.dart';
 import '../useCases/capture_and_detect_food_use_case.dart';
 import '../useCases/clear_all_use_case.dart';
 import '../useCases/load_food_history_use_case.dart';
+import 'foodies_controller_interface.dart';
 
-class FoodiesController extends GetxController {
+class FoodiesController extends BaseController
+    implements FoodiesControllerInterface {
   FoodiesController({
     required this.loadFoodHistoryUseCase,
     required this.captureAndDetectFoodUseCase,
@@ -19,14 +22,18 @@ class FoodiesController extends GetxController {
   final ClearAllUseCase clearAllUseCase;
 
   // Reactive variables
+  @override
   final RxList<FoodItem> items = <FoodItem>[].obs;
-  final RxBool isLoading = false.obs;
-  final RxnString error = RxnString();
 
   @override
   void onInit() {
     super.onInit();
     loadHistory();
+  }
+
+  @override
+  void mainActionRequested() {
+    isLoading.value = true;
   }
 
   Future<void> loadHistory() async {
@@ -43,6 +50,7 @@ class FoodiesController extends GetxController {
     }
   }
 
+  @override
   Future<void> captureFood(XFile? photo) async {
     if (photo == null) {
       print('[FoodiesController] 📷 User cancelled camera');
@@ -51,6 +59,10 @@ class FoodiesController extends GetxController {
 
     print('[FoodiesController] 📸 Photo captured: ${photo.path}');
 
+    // Set loading state immediately when returning from camera
+    isLoading.value = true;
+    error.value = null;
+
     await _processAndDetectFood(photo);
   }
 
@@ -58,9 +70,7 @@ class FoodiesController extends GetxController {
     print('[ProcessFood] 🎬 Starting food processing...');
     print('[ProcessFood] 📸 Photo path: ${photo.path}');
 
-    isLoading.value = true;
-    error.value = null;
-    print('[ProcessFood] ⏳ State set to loading, calling use case...');
+    print('[ProcessFood] ⏳ State already set to loading, calling use case...');
 
     try {
       final item = await captureAndDetectFoodUseCase.execute(photo);
@@ -87,6 +97,7 @@ class FoodiesController extends GetxController {
     }
   }
 
+  @override
   Future<void> clearAll() async {
     isLoading.value = true;
     error.value = null;

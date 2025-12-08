@@ -57,7 +57,12 @@ class UsdaFoodDataService implements FoodDataService {
     }
 
     final uri = Uri.parse('$_baseUrl/foods/search').replace(
-      queryParameters: {'api_key': _apiKey!, 'query': query, 'pageSize': '10'},
+      queryParameters: {
+        'api_key': _apiKey!,
+        'query': query,
+        'pageSize': '10',
+        'dataType': 'Foundation,Survey (FNDDS)',
+      },
     );
 
     print('[FoodDataService] 🌐 Calling API: ${uri.toString()}');
