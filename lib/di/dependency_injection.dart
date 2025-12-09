@@ -17,6 +17,8 @@ import '../useCases/load_food_history_use_case.dart';
 /// Dependency Injection container
 /// Responsible for initializing and wiring all dependencies
 class DependencyInjection {
+  static FoodiesStorageService? _storageService;
+
   /// Initialize all dependencies and register controllers
   static Future<void> initialize() async {
     print('[DI] 🚀 Initializing dependencies...');
@@ -32,13 +34,10 @@ class DependencyInjection {
 
     // 3. Initialize storage services
     final storageService = FileStorageService(directoryName: 'foodies_cache');
-    final foodiesStorageService = FoodiesStorageService(
-      storageService: storageService,
-    );
+    _storageService = FoodiesStorageService(storageService: storageService);
 
-    // Clean up expired cache on app startup
-    await foodiesStorageService.cleanupExpiredCache();
-    print('[DI] ✅ Storage services initialized and cache cleaned');
+    // Cache cleanup will run in background after UI loads (non-blocking)
+    print('[DI] ✅ Storage services initialized');
 
     // 4. Initialize vision services
     final visionService = GoogleVisionDetectionService(apiService: apiService);
@@ -51,21 +50,21 @@ class DependencyInjection {
     final foodDataService = UsdaFoodDataService(
       apiService: apiService,
       secretsService: secretsService,
-      storageService: foodiesStorageService,
+      storageService: _storageService!,
     );
     print('[DI] ✅ Food data services initialized');
 
     // 6. Initialize use cases
     final loadFoodHistoryUseCase = LoadFoodHistoryUseCaseImpl(
-      storageService: foodiesStorageService,
+      storageService: _storageService!,
     );
     final captureAndDetectFoodUseCase = CaptureAndDetectFoodUseCaseImpl(
       detectionService: foodDetectionService,
       foodDataService: foodDataService,
-      storageService: foodiesStorageService,
+      storageService: _storageService!,
     );
     final clearAllUseCase = ClearAllUseCaseImpl(
-      storageService: foodiesStorageService,
+      storageService: _storageService!,
     );
     final loadFoodDetailUseCase = LoadFoodDetailUseCaseImpl(
       foodDataService: foodDataService,
@@ -87,4 +86,7 @@ class DependencyInjection {
 
     print('[DI] ✅ All dependencies initialized successfully');
   }
+
+  /// Get the storage service instance (for cache cleanup)
+  static FoodiesStorageService? get storageService => _storageService;
 }

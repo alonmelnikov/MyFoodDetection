@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'di/dependency_injection.dart';
-import 'ui/screens/foodies_screen.dart';
+import 'ui/screens/splash_screen.dart';
 
 void main() async {
-  // Initialize all dependencies
-  await DependencyInjection.initialize();
+  // Ensure Flutter bindings are initialized before async operations
+  WidgetsFlutterBinding.ensureInitialized();
 
+  // Show app immediately - splash screen will handle initialization
   runApp(const MyApp());
 }
 
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: FoodiesScreen(),
+      home: const SplashScreen(),
     );
   }
 }
