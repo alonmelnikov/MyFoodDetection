@@ -9,7 +9,7 @@ A Flutter application that detects food from images using Google Cloud Vision AP
 - 🥗 Fetch nutritional data (calories, carbs, protein, fat) from USDA API
 - 📊 Display food history with nutrition information
 - 🔄 Smart retry logic - tries up to 5 detected labels to find nutrition data
-- 🔐 Secure API key management via Google Secret Manager
+- 🔐 Secure API key management: API keys are managed by Google Secret Manager, ensuring sensitive credentials are not stored in the codebase
 
 ## Architecture
 
