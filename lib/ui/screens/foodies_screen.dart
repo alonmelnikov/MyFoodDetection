@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/foodies_controller.dart';
 import '../../controllers/foodies_controller_interface.dart';
-import '../../models/food_item.dart';
+import '../../domain/models/food_item.dart';
 import '../custom_widgets/generic_list.dart';
 import '../custom_widgets/generic_list_item.dart';
 import 'food_detail_screen.dart';

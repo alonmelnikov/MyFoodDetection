@@ -52,17 +52,14 @@ class HttpApiService implements ApiService {
         _mapStatusCodeToError(response.statusCode),
       );
     } on SocketException {
-      print('[ApiService] 🌐 GET request failed: No internet connection');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.noInternet,
       );
     } on TimeoutException {
-      print('[ApiService] ⏱️ GET request timed out after ${_timeout.inSeconds}s: $uri');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.timeout,
       );
     } catch (e) {
-      print('[ApiService] ❌ GET request failed with unknown error: $e');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.unknown,
       );
@@ -98,17 +95,14 @@ class HttpApiService implements ApiService {
         _mapStatusCodeToError(response.statusCode),
       );
     } on SocketException {
-      print('[ApiService] 🌐 POST request failed: No internet connection');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.noInternet,
       );
     } on TimeoutException {
-      print('[ApiService] ⏱️ POST request timed out after ${_timeout.inSeconds}s: $uri');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.timeout,
       );
     } catch (e) {
-      print('[ApiService] ❌ POST request failed with unknown error: $e');
       return Result<Map<String, dynamic>, NetworkError>.failure(
         NetworkError.unknown,
       );

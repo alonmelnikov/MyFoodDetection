@@ -167,7 +167,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       dense: true,
                       title: Text(entry.key),
                       trailing: Text(
-                        '${entry.value.toStringAsFixed(2)}',
+                        entry.value.toStringAsFixed(2),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     );

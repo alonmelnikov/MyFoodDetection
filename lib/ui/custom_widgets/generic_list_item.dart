@@ -31,7 +31,7 @@ class GenericListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -54,7 +54,10 @@ class GenericListItem extends StatelessWidget {
                       height: 64,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color:
+                            Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: imageFile != null
@@ -152,8 +155,8 @@ class _DetailChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color:
-            detail.color?.withOpacity(0.15) ??
-            Theme.of(context).colorScheme.surfaceVariant,
+            detail.color?.withValues(alpha: 0.15) ??
+            Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

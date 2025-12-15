@@ -46,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> {
         Get.offAll(() => FoodiesScreen());
       }
     } catch (e) {
-      print('[SplashScreen] ❌ Initialization failed: $e');
       // Still wait for minimum 3 seconds even if there's an error
       final elapsed = DateTime.now().difference(startTime);
       final remainingTime = minDisplayDuration - elapsed;
@@ -62,17 +61,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _cleanupCacheInBackground() {
-    final storageService = DependencyInjection.storageService;
-    if (storageService == null) {
-      print(
-        '[SplashScreen] ⚠️ Storage service not available, skipping cache cleanup',
-      );
+    final historyStorageService = DependencyInjection.historyStorageService;
+    if (historyStorageService == null) {
       return;
     }
 
-    // Run cleanup in background without blocking
-    storageService.cleanupExpiredCache().catchError((error) {
-      print('[SplashScreen] ⚠️ Background cache cleanup failed: $error');
+    // Run cleanup in background without blocking:
+    // - remove legacy disk cache files from previous versions
+    historyStorageService.cleanupLegacyApiCacheFiles().catchError((error) {
+      // Silently handle cleanup errors
     });
   }
 

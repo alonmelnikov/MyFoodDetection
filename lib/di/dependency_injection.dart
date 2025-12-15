@@ -3,9 +3,10 @@ import 'package:get/get.dart';
 import '../controllers/food_detail_controller.dart';
 import '../controllers/foodies_controller.dart';
 import '../services/api_service.dart';
+import '../services/food_data_memory_cache_service.dart';
 import '../services/food_data_service.dart';
 import '../services/food_detection_service.dart';
-import '../services/foodies_storage_service.dart';
+import '../services/food_history_storage_service.dart';
 import '../services/secrets_service.dart';
 import '../services/storage_service.dart';
 import '../services/vision_detection_service.dart';
@@ -17,59 +18,55 @@ import '../useCases/load_food_history_use_case.dart';
 /// Dependency Injection container
 /// Responsible for initializing and wiring all dependencies
 class DependencyInjection {
-  static FoodiesStorageService? _storageService;
+  static FoodHistoryStorageService? _historyStorageService;
 
   /// Initialize all dependencies and register controllers
   static Future<void> initialize() async {
-    print('[DI] 🚀 Initializing dependencies...');
-
     // 1. Load environment variables
     await EnvSecretsService.load();
-    print('[DI] ✅ Environment variables loaded');
 
     // 2. Initialize core services
     final apiService = HttpApiService();
     final secretsService = EnvSecretsService();
-    print('[DI] ✅ Core services initialized');
 
     // 3. Initialize storage services
     final storageService = FileStorageService(directoryName: 'foodies_cache');
-    _storageService = FoodiesStorageService(storageService: storageService);
+    _historyStorageService = FoodHistoryStorageService(
+      storageService: storageService,
+    );
 
-    // Cache cleanup will run in background after UI loads (non-blocking)
-    print('[DI] ✅ Storage services initialized');
+    // Memory-only cache for USDA responses
+    final FoodDataCacheService foodDataCacheService =
+        FoodDataMemoryCacheService(maxItems: 30);
 
     // 4. Initialize vision services
     final visionService = GoogleVisionDetectionService(apiService: apiService);
     final foodDetectionService = FoodDetectionService(
       visionService: visionService,
     );
-    print('[DI] ✅ Vision services initialized');
 
     // 5. Initialize food data services
     final foodDataService = UsdaFoodDataService(
       apiService: apiService,
       secretsService: secretsService,
-      storageService: _storageService!,
+      cacheService: foodDataCacheService,
     );
-    print('[DI] ✅ Food data services initialized');
 
     // 6. Initialize use cases
     final loadFoodHistoryUseCase = LoadFoodHistoryUseCaseImpl(
-      storageService: _storageService!,
+      historyStorageService: _historyStorageService!,
     );
     final captureAndDetectFoodUseCase = CaptureAndDetectFoodUseCaseImpl(
       detectionService: foodDetectionService,
       foodDataService: foodDataService,
-      storageService: _storageService!,
+      historyStorageService: _historyStorageService!,
     );
     final clearAllUseCase = ClearAllUseCaseImpl(
-      storageService: _storageService!,
+      historyStorageService: _historyStorageService!,
     );
     final loadFoodDetailUseCase = LoadFoodDetailUseCaseImpl(
       foodDataService: foodDataService,
     );
-    print('[DI] ✅ Use cases initialized');
 
     // 8. Register controllers with GetX
     Get.put(
@@ -82,11 +79,9 @@ class DependencyInjection {
     Get.put(
       FoodDetailsController(loadFoodDetailUseCase: loadFoodDetailUseCase),
     );
-    print('[DI] ✅ Controllers registered');
-
-    print('[DI] ✅ All dependencies initialized successfully');
   }
 
-  /// Get the storage service instance (for cache cleanup)
-  static FoodiesStorageService? get storageService => _storageService;
+  /// Get the history storage service instance (for background cleanup)
+  static FoodHistoryStorageService? get historyStorageService =>
+      _historyStorageService;
 }

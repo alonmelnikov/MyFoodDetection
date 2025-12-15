@@ -60,9 +60,7 @@ class FileStorageService implements StorageService {
       final filePath = await _getFilePath(key);
       final file = File(filePath);
       await file.writeAsString(data);
-      print('[FileStorage] ✅ Saved data for key: $key');
     } catch (e) {
-      print('[FileStorage] ❌ Failed to save data for key: $key, error: $e');
       rethrow;
     }
   }
@@ -74,15 +72,12 @@ class FileStorageService implements StorageService {
       final file = File(filePath);
 
       if (!await file.exists()) {
-        print('[FileStorage] ⚠️ File not found for key: $key');
         return null;
       }
 
       final data = await file.readAsString();
-      print('[FileStorage] ✅ Read data for key: $key');
       return data;
     } catch (e) {
-      print('[FileStorage] ❌ Failed to read data for key: $key, error: $e');
       return null;
     }
   }
@@ -95,10 +90,9 @@ class FileStorageService implements StorageService {
 
       if (await file.exists()) {
         await file.delete();
-        print('[FileStorage] ✅ Deleted data for key: $key');
       }
     } catch (e) {
-      print('[FileStorage] ❌ Failed to delete data for key: $key, error: $e');
+      // Silently handle delete errors
     }
   }
 
@@ -109,9 +103,6 @@ class FileStorageService implements StorageService {
       final file = File(filePath);
       return await file.exists();
     } catch (e) {
-      print(
-        '[FileStorage] ❌ Failed to check existence for key: $key, error: $e',
-      );
       return false;
     }
   }
@@ -123,10 +114,9 @@ class FileStorageService implements StorageService {
       if (await dir.exists()) {
         await dir.delete(recursive: true);
         _storageDirectory = null;
-        print('[FileStorage] ✅ Cleared all storage');
       }
     } catch (e) {
-      print('[FileStorage] ❌ Failed to clear storage, error: $e');
+      // Silently handle clear errors
     }
   }
 
@@ -150,10 +140,8 @@ class FileStorageService implements StorageService {
         }
       }
 
-      print('[FileStorage] 📋 Found ${keys.length} cached keys');
       return keys;
     } catch (e) {
-      print('[FileStorage] ❌ Failed to list keys, error: $e');
       return [];
     }
   }

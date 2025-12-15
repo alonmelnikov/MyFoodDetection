@@ -1,8 +1,8 @@
 import '../enums/network_errors.dart';
-import '../models/food_nutrients.dart';
+import '../domain/models/food_nutrients.dart';
 import '../core/result.dart';
 import 'api_service.dart';
-import 'foodies_storage_service.dart';
+import 'food_data_memory_cache_service.dart';
 import 'secrets_service.dart';
 
 /// Protocol (interface) for food data service.
@@ -24,14 +24,14 @@ class UsdaFoodDataService implements FoodDataService {
   UsdaFoodDataService({
     required ApiService apiService,
     required SecretsService secretsService,
-    required FoodiesStorageService storageService,
+    required FoodDataCacheService cacheService,
   }) : _apiService = apiService,
        _secretsService = secretsService,
-       _storageService = storageService;
+       _cacheService = cacheService;
 
   final ApiService _apiService;
   final SecretsService _secretsService;
-  final FoodiesStorageService _storageService;
+  final FoodDataCacheService _cacheService;
 
   static const String _baseUrl = 'https://api.nal.usda.gov/fdc/v1';
 
@@ -42,17 +42,13 @@ class UsdaFoodDataService implements FoodDataService {
   Future<Result<Map<String, dynamic>, NetworkError?>> searchFoods(
     String query,
   ) async {
-    print('[FoodDataService] 🔍 Searching for foods: $query');
-
     // Check cache first
-    final cachedData = await _storageService.getFoodSearchResults(query);
+    final cachedData = _cacheService.getSearchResults(query);
     if (cachedData != null) {
-      print('[FoodDataService] ✅ Returning cached search results');
       return Result.success(cachedData);
     }
 
     if (_apiKey == null) {
-      print('[FoodDataService] ❌ API key not found');
       return Result.failure(NetworkError.unauthorized);
     }
 
@@ -65,21 +61,14 @@ class UsdaFoodDataService implements FoodDataService {
       },
     );
 
-    print('[FoodDataService] 🌐 Calling API: ${uri.toString()}');
-
     final result = await _apiService.get(uri);
 
     if (!result.isSuccess) {
-      print('[FoodDataService] ❌ Search failed: ${result.error}');
       return Result.failure(result.error);
     }
 
-    print('[FoodDataService] ✅ Search successful');
-    print('[FoodDataService] 📄 JSON Response:');
-    print('[FoodDataService] ${result.data}');
-
     // Cache the result
-    await _storageService.saveFoodSearchResults(query, result.data!);
+    _cacheService.setSearchResults(query, result.data!);
 
     return Result.success(result.data!);
   }
@@ -88,17 +77,13 @@ class UsdaFoodDataService implements FoodDataService {
   Future<Result<Map<String, dynamic>, NetworkError?>> getFoodById(
     int fdcId,
   ) async {
-    print('[FoodDataService] 📋 Getting food details for FDC ID: $fdcId');
-
     // Check cache first
-    final cachedData = await _storageService.getFoodDetail(fdcId);
+    final cachedData = _cacheService.getFoodDetail(fdcId);
     if (cachedData != null) {
-      print('[FoodDataService] ✅ Returning cached food detail');
       return Result.success(cachedData);
     }
 
     if (_apiKey == null) {
-      print('[FoodDataService] ❌ API key not found');
       return Result.failure(NetworkError.unauthorized);
     }
 
@@ -106,21 +91,14 @@ class UsdaFoodDataService implements FoodDataService {
       '$_baseUrl/food/$fdcId',
     ).replace(queryParameters: {'api_key': _apiKey!});
 
-    print('[FoodDataService] 🌐 Calling API: ${uri.toString()}');
-
     final result = await _apiService.get(uri);
 
     if (!result.isSuccess) {
-      print('[FoodDataService] ❌ Get food failed: ${result.error}');
       return Result.failure(result.error);
     }
 
-    print('[FoodDataService] ✅ Get food successful');
-    print('[FoodDataService] 📄 JSON Response:');
-    print('[FoodDataService] ${result.data}');
-
     // Cache the result
-    await _storageService.saveFoodDetail(fdcId, result.data!);
+    _cacheService.setFoodDetail(fdcId, result.data!);
 
     return Result.success(result.data!);
   }
@@ -129,13 +107,10 @@ class UsdaFoodDataService implements FoodDataService {
   Future<Result<FoodNutrients?, NetworkError?>> getFoodNutrientsByName(
     String foodName,
   ) async {
-    print('[FoodDataService] 🍎 Getting nutrients for: $foodName');
-
     // First, search for the food
     final searchResult = await searchFoods(foodName);
 
     if (!searchResult.isSuccess || searchResult.data == null) {
-      print('[FoodDataService] ❌ Search failed for: $foodName');
       return Result.failure(searchResult.error);
     }
 
@@ -143,7 +118,6 @@ class UsdaFoodDataService implements FoodDataService {
     final foods = searchData['foods'] as List<dynamic>?;
 
     if (foods == null || foods.isEmpty) {
-      print('[FoodDataService] ⚠️ No foods found for: $foodName');
       return Result.success(null);
     }
 
@@ -153,11 +127,8 @@ class UsdaFoodDataService implements FoodDataService {
     final fdcId = firstFood['fdcId'] as int?;
 
     if (foodNutrients == null || foodNutrients.isEmpty) {
-      print('[FoodDataService] ⚠️ No nutrients found for: $foodName');
       return Result.success(null);
     }
-
-    print('[FoodDataService] 📊 Parsing ${foodNutrients.length} nutrients');
 
     final nutrients = FoodNutrients.fromJson(foodNutrients);
 
@@ -169,13 +140,6 @@ class UsdaFoodDataService implements FoodDataService {
       fat: nutrients.fat,
       fdcId: fdcId,
     );
-
-    print('[FoodDataService] ✅ Nutrients parsed successfully');
-    print('[FoodDataService]    - FDC ID: $fdcId');
-    print('[FoodDataService]    - Calories: ${nutrientsWithId.calories}');
-    print('[FoodDataService]    - Carbs: ${nutrientsWithId.carbs}g');
-    print('[FoodDataService]    - Protein: ${nutrientsWithId.protein}g');
-    print('[FoodDataService]    - Fat: ${nutrientsWithId.fat}g');
 
     return Result.success(nutrientsWithId);
   }

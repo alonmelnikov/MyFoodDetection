@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/base_interface_controller.dart';
-import '../models/food_item.dart';
+import '../domain/models/food_item.dart';
 
 /// Interface for FoodiesController - defines the contract for the screen
 abstract class FoodiesControllerInterface extends BaseInterfaceController {

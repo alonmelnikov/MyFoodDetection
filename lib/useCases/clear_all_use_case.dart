@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../services/foodies_storage_service.dart';
+import '../services/food_history_storage_service.dart';
 
 /// Use case for clearing all food data
 abstract class ClearAllUseCase {
@@ -8,17 +8,15 @@ abstract class ClearAllUseCase {
 }
 
 class ClearAllUseCaseImpl implements ClearAllUseCase {
-  ClearAllUseCaseImpl({required FoodiesStorageService storageService})
-      : _storageService = storageService;
+  ClearAllUseCaseImpl({required FoodHistoryStorageService historyStorageService})
+      : _historyStorageService = historyStorageService;
 
-  final FoodiesStorageService _storageService;
+  final FoodHistoryStorageService _historyStorageService;
 
   @override
   Future<void> execute() async {
-    print('[ClearAllUseCase] 🗑️ Clearing all data...');
-
     // Load items first to get image paths
-    final items = await _storageService.loadFoodItems();
+    final items = await _historyStorageService.loadFoodItems();
 
     // Delete all image files
     for (final item in items) {
@@ -26,18 +24,14 @@ class ClearAllUseCaseImpl implements ClearAllUseCase {
         final imageFile = File(item.imagePath);
         if (await imageFile.exists()) {
           await imageFile.delete();
-          print('[ClearAllUseCase] 🗑️ Deleted image: ${item.imagePath}');
         }
       } catch (e) {
-        print(
-          '[ClearAllUseCase] ⚠️ Failed to delete image ${item.imagePath}: $e',
-        );
+        // Silently handle delete errors
       }
     }
 
     // Clear storage
-    await _storageService.clearAll();
-    print('[ClearAllUseCase] ✅ All data cleared');
+    await _historyStorageService.clearFoodItems();
   }
 }
 
