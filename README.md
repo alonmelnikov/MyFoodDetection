@@ -9,7 +9,7 @@ A Flutter application that detects food from images using Google Cloud Vision AP
 - 🥗 Fetch nutritional data (calories, carbs, protein, fat) from USDA API
 - 📊 Display food history with nutrition information
 - 🔄 Smart retry logic - tries up to 5 detected labels to find nutrition data
-- 🔐 Secure API key management: API keys are managed by Google Secret Manager, ensuring sensitive credentials are not stored in the codebase
+- 🔐 Secure API key management: Google Vision credentials are handled server-side (Cloud Run + Google Secret Manager), and the USDA API key is loaded locally from a demo `.env` file (not intended for production)
 
 ## Architecture
 
@@ -57,12 +57,15 @@ models/              # Data models
 - Flutter SDK (^3.10.1)
 - Dart SDK
 - iOS/Android device or simulator
-- Google Cloud Vision API access (via Cloud Run endpoint)
-- USDA FoodData Central API key
+- Google Cloud Vision API access (via Cloud Run endpoint; credentials handled server-side)
+- USDA FoodData Central API key (demo: stored in `.env`)
 
 ### API Key Management
 
-API keys are managed by Google Secret Manager. The application retrieves API keys securely from Google Secret Manager at runtime, ensuring sensitive credentials are not stored in the codebase or environment files.
+This repo is a **demo app**, so key management is split intentionally:
+
+- **Google Vision (recommended / production-safe)**: the mobile app calls a Cloud Run endpoint, and the Google credentials are handled server-side using Google Secret Manager (no Google keys in this repo).
+- **USDA FoodData Central (demo-only)**: the app reads `USDA_API_KEY` from a local `.env` file via `flutter_dotenv` (convenient for demos; don’t ship this approach in production).
 
 
 
